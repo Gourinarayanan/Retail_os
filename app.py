@@ -421,79 +421,79 @@ def render_html(html_str):
 
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
     * {
-        font-family: 'Outfit', sans-serif;
+        font-family: 'Inter', sans-serif;
     }
     
     .stApp {
-        background-color: #0f172a;
-        color: #f8fafc;
+        background-color: #09090b;
+        color: #fafafa;
     }
     
     .title-banner {
-        background: #1e293b;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
-        border: 1px solid #334155;
+        background: #18181b;
+        padding: 1.25rem;
+        border-radius: 6px;
+        margin-bottom: 1.25rem;
+        border: 1px solid #27272a;
         text-align: center;
     }
     
     .title-banner h1 {
         color: #ffffff;
-        font-size: 2.2rem !important;
-        font-weight: 700;
+        font-size: 1.8rem !important;
+        font-weight: 600;
         margin: 0;
         letter-spacing: -0.5px;
     }
     
     .title-banner p {
-        color: #94a3b8;
-        font-size: 0.95rem;
-        margin: 0.4rem 0 0 0;
+        color: #a1a1aa;
+        font-size: 0.85rem;
+        margin: 0.3rem 0 0 0;
         font-weight: 400;
     }
     
     .glass-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
     
     .metric-title {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #94a3b8;
-        font-weight: 600;
-        margin-bottom: 0.3rem;
+        color: #a1a1aa;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
     }
     
     .metric-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #38bdf8;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #f4f4f5;
         margin-bottom: 0.1rem;
     }
     
     .metric-subtext {
-        font-size: 0.75rem;
-        color: #64748b;
+        font-size: 0.7rem;
+        color: #71717a;
     }
     
     .stepper-container {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 1.25rem 0;
-        padding: 0.75rem;
-        background: #1e293b;
-        border-radius: 8px;
-        border: 1px solid #334155;
+        margin: 1rem 0;
+        padding: 0.6rem;
+        background: #18181b;
+        border-radius: 6px;
+        border: 1px solid #27272a;
         overflow-x: auto;
     }
     
@@ -502,80 +502,80 @@ st.markdown("""
         flex-direction: column;
         align-items: center;
         text-align: center;
-        min-width: 90px;
+        min-width: 80px;
     }
     
     .step-circle {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
-        background: #0f172a;
-        color: #94a3b8;
-        border: 1px solid #334155;
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+        background: #09090b;
+        color: #71717a;
+        border: 1px solid #27272a;
     }
     
     .step-active {
-        background: #2563eb;
+        background: #27272a;
         color: #ffffff;
-        border: 1px solid #3b82f6;
+        border: 1px solid #3f3f46;
     }
     
     .step-label {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: #cbd5e1;
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: #d4d4d8;
     }
     
     .executive-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-top: 1rem;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 6px;
+        padding: 1.25rem;
+        margin-top: 0.75rem;
     }
     
     .executive-header {
-        font-size: 1.3rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 600;
         color: #ffffff;
-        border-bottom: 1px solid #334155;
-        padding-bottom: 0.6rem;
-        margin-bottom: 1rem;
+        border-bottom: 1px solid #27272a;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     
     .exec-badge {
-        background: #dc2626;
-        color: white;
-        padding: 3px 10px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: bold;
+        background: #3f3f46;
+        color: #f4f4f5;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.7rem;
+        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     
     .rec-box {
-        background: rgba(56, 189, 248, 0.05);
-        border-left: 3px solid #38bdf8;
-        padding: 1rem;
+        background: #09090b;
+        border-left: 2px solid #3f3f46;
+        padding: 0.75rem 1rem;
         border-radius: 0 4px 4px 0;
-        margin-top: 1rem;
+        margin-top: 0.75rem;
     }
     
     .rec-box p {
-        margin: 0 0 0.4rem 0;
-        font-size: 0.95rem;
-        color: #cbd5e1;
-        line-height: 1.5;
+        margin: 0 0 0.3rem 0;
+        font-size: 0.85rem;
+        color: #d4d4d8;
+        line-height: 1.4;
     }
     
     .rec-box p:last-child {
@@ -583,183 +583,184 @@ st.markdown("""
     }
     
     .stButton>button {
-        background: #2563eb !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.5rem 1.5rem !important;
-        border-radius: 6px !important;
-        font-size: 0.95rem !important;
-        font-weight: 600 !important;
-        transition: background-color 0.2s ease !important;
+        background: #27272a !important;
+        color: #f4f4f5 !important;
+        border: 1px solid #3f3f46 !important;
+        padding: 0.4rem 1.25rem !important;
+        border-radius: 4px !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
         width: 100% !important;
         box-shadow: none !important;
     }
     
     .stButton>button:hover {
-        background: #1d4ed8 !important;
+        background: #3f3f46 !important;
+        border-color: #52525b !important;
         transform: none !important;
         box-shadow: none !important;
     }
     
     section[data-testid="stSidebar"] {
-        background-color: #0f172a !important;
-        border-right: 1px solid #334155;
+        background-color: #09090b !important;
+        border-right: 1px solid #27272a;
     }
     
     .log-node {
-        background: #0f172a;
-        border: 1px solid #334155;
-        border-radius: 6px;
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
+        background: #09090b;
+        border: 1px solid #27272a;
+        border-radius: 4px;
+        padding: 0.6rem;
+        margin-bottom: 0.4rem;
     }
     
     .section-header {
-        font-size: 1.1rem;
-        font-weight: bold;
+        font-size: 0.95rem;
+        font-weight: 600;
         color: #ffffff;
-        margin-top: 1.25rem;
-        margin-bottom: 0.6rem;
-        border-bottom: 1px solid #334155;
-        padding-bottom: 0.25rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #27272a;
+        padding-bottom: 0.2rem;
     }
     
     .status-badge {
-        background: rgba(34, 197, 94, 0.06);
-        border: 1px solid #22c55e;
+        background: #18181b;
+        border: 1px solid #27272a;
         border-radius: 4px;
-        padding: 4px 12px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: #22c55e;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #f4f4f5;
         display: inline-flex;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
     }
     .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #22c55e;
+        width: 6px;
+        height: 6px;
+        background-color: #10b981;
         border-radius: 50%;
-        margin-right: 8px;
+        margin-right: 6px;
     }
     
     .db-card {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 1.25rem;
-        margin-bottom: 1.25rem;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
     }
     .db-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid #334155;
-        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid #27272a;
+        padding-bottom: 0.4rem;
     }
     .db-title {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #f1f5f9;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #ffffff;
         display: flex;
         align-items: center;
         gap: 6px;
     }
     .db-status {
         font-size: 0.7rem;
-        color: #22c55e;
-        font-weight: bold;
-        letter-spacing: 1px;
+        color: #10b981;
+        font-weight: 600;
+        letter-spacing: 0.5px;
     }
     .db-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
     }
     .db-cell {
-        background: #0f172a;
-        border-radius: 6px;
-        padding: 0.75rem;
+        background: #09090b;
+        border-radius: 4px;
+        padding: 0.6rem;
         text-align: center;
-        border: 1px solid #334155;
+        border: 1px solid #27272a;
     }
     .db-cell-title {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #94a3b8;
-        margin-bottom: 0.2rem;
+        color: #a1a1aa;
+        margin-bottom: 0.15rem;
     }
     .db-cell-val {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #38bdf8;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #f4f4f5;
     }
     
     .brief-doc {
-        background: #1e293b;
-        border: 1px solid #334155;
-        border-radius: 8px;
-        padding: 1.75rem;
-        color: #f8fafc;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 6px;
+        padding: 1.5rem;
+        color: #f4f4f5;
         max-width: 100%;
         margin: auto;
     }
     .brief-doc-title {
-        font-size: 1.25rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 600;
         color: #ffffff;
-        border-bottom: 1px solid #334155;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1.25rem;
+        border-bottom: 1px solid #27272a;
+        padding-bottom: 0.4rem;
+        margin-bottom: 1rem;
         text-align: center;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
     }
     .brief-section-title {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: #38bdf8;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #d4d4d8;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-top: 1.25rem;
-        margin-bottom: 0.6rem;
-        border-bottom: 1px solid #334155;
-        padding-bottom: 0.2rem;
+        letter-spacing: 0.5px;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #27272a;
+        padding-bottom: 0.15rem;
     }
     .brief-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.6rem;
-        margin-bottom: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 0.6rem;
     }
     .brief-stat-card {
-        background: #0f172a;
-        padding: 0.6rem;
-        border-radius: 6px;
-        border: 1px solid #334155;
+        background: #09090b;
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid #27272a;
         text-align: center;
     }
     .brief-stat-label {
-        font-size: 0.6rem;
-        color: #94a3b8;
+        font-size: 0.55rem;
+        color: #a1a1aa;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 0.2rem;
-        font-weight: 600;
+        margin-bottom: 0.15rem;
+        font-weight: 500;
     }
     .brief-stat-val {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #f1f5f9;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #f4f4f5;
     }
     .brief-stat-val.highlight {
-        color: #38bdf8;
+        color: #ffffff;
     }
     .brief-stat-val.warning {
-        color: #f59e0b;
+        color: #eab308;
     }
     .brief-stat-val.critical {
         color: #ef4444;
@@ -768,39 +769,39 @@ st.markdown("""
         color: #10b981;
     }
     .brief-doc-rec {
-        background: rgba(16, 185, 129, 0.05);
-        border-left: 3px solid #10b981;
-        padding: 1rem;
-        margin-top: 1rem;
-        border-radius: 0 6px 6px 0;
+        background: #09090b;
+        border-left: 2px solid #10b981;
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+        border-radius: 0 4px 4px 0;
     }
     .brief-doc-rec-title {
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.7rem;
+        font-weight: 600;
         color: #10b981;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.3rem;
     }
     .brief-doc-rec p {
-        margin: 0 0 0.4rem 0;
-        font-size: 0.92rem;
-        color: #e2e8f0;
-        line-height: 1.5;
+        margin: 0 0 0.3rem 0;
+        font-size: 0.85rem;
+        color: #d4d4d8;
+        line-height: 1.4;
     }
     .brief-doc-rec p:last-child {
         margin: 0;
     }
     .brief-stamp {
-        border: 1.5px dashed #10b981;
-        color: #10b981;
-        padding: 4px 10px;
-        border-radius: 4px;
+        border: 1px solid #27272a;
+        color: #a1a1aa;
+        padding: 3px 8px;
+        border-radius: 3px;
         display: inline-block;
-        font-weight: 700;
-        font-size: 0.75rem;
-        margin-top: 1rem;
-        letter-spacing: 1px;
+        font-weight: 500;
+        font-size: 0.7rem;
+        margin-top: 0.75rem;
+        letter-spacing: 0.5px;
         background: transparent;
         text-transform: uppercase;
     }
