@@ -255,54 +255,35 @@ TRANSLATIONS = {
         "tab_sim": "🎮 सिमुलेशन कंट्रोल",
         "tab_auto": "🤖 ऑटोनॉमस कंट्रोल रूम",
         "sidebar_settings": "⚙️ नियंत्रण सेटिंग्स",
-        "sidebar_simulate": "एपीआई सिमुलेशन (कोई की आवश�def translate_val(val, lang):
-    val_str = str(val).strip()
-    if lang == "English":
-        return val_str
-    
-    if "units/day" in val_str.lower():
-        if lang == "Malayalam":
-            val_str = val_str.lower().replace("units/day", "എണ്ണം/ദിവസം")
-        elif lang == "Hindi":
-            val_str = val_str.lower().replace("units/day", "इकाइयां/दिन")
-    
-    mapping = {
-        "Onam": {"Malayalam": "ഓണം", "Hindi": "ओणम"},
-        "Diwali": {"Malayalam": "ദീപാവലി", "Hindi": "दिवाली"},
-        "None": {"Malayalam": "ഒന്നുമില്ല", "Hindi": "कोई नहीं"},
-        "Rain": {"Malayalam": "മഴ", "Hindi": "बारिश"},
-        "Heatwave": {"Malayalam": "അത്യുഷ്ണം", "Hindi": "भीषण गर्मी"},
-        "Flood": {"Malayalam": "വെള്ളപ്പൊക്കം", "Hindi": "बाढ़"},
-        "Cyclone": {"Malayalam": "ചുഴലിക്കാറ്റ്", "Hindi": "चक्रवात"},
-        "Normal": {"Malayalam": "സാധാരണ കാലാവസ്ഥ", "Hindi": "सामान्य मौसम"},
-        "Tomorrow": {"Malayalam": "നാളെ", "Hindi": "कल"},
-        "High": {"Malayalam": "കൂടുതൽ", "Hindi": "उच्च"},
-        "Medium": {"Malayalam": "മിതമായി", "Hindi": "मध्यम"},
-        "Low": {"Malayalam": "കുറവ്", "Hindi": "कम"},
-        "Critical": {"Malayalam": "അപകടകരം", "Hindi": "गंभीर"},
-        "Warning": {"Malayalam": "മുന്നറിയിപ്പ്", "Hindi": "चेतावनी"},
-        "Safe": {"Malayalam": "സുരക്ഷിതം", "Hindi": "सुरक्षित"},
-        "Supplier C": {"Malayalam": "സപ്ലയർ സി", "Hindi": "आपूर्तिकर्ता सी"},
-        "Supplier A": {"Malayalam": "സപ്ലയർ എ", "Hindi": "आपूर्तिकर्ता ए"},
-        "Supplier B": {"Malayalam": "സപ്ലയർ ബി", "Hindi": "आपूर्तिकर्ता बी"},
-        "Units": {"Malayalam": "എണ്ണം", "Hindi": "इकाइयां"},
-        "Days": {"Malayalam": "ദിവസം", "Hindi": "दिन"},
-        "UP": {"Malayalam": "വർദ്ധിക്കുന്നു", "Hindi": "ऊपर"},
-        "DOWN": {"Malayalam": "കുറയുന്നു", "Hindi": "नीचे"}
-    }
-    
-    for eng_term, translations in mapping.items():
-        if eng_term.lower() in val_str.lower():
-            if lang in translations:
-                val_str = val_str.replace(eng_term, translations[lang])
-                
-    if "units" in val_str.lower():
-        if lang == "Malayalam":
-            val_str = val_str.lower().replace("units", "എണ്ണം")
-        elif lang == "Hindi":
-            val_str = val_str.lower().replace("units", "इकाइयां")
-            
-    return val_str�� स्टॉक",
+        "sidebar_simulate": "एपीआई सिमुलेशन (कोई की आवश्यकता नहीं)",
+        "sidebar_key": "Gemini API की",
+        "sidebar_rag": "📚 RAG एक्सप्लोरर",
+        "sidebar_rag_select": "RAG संग्रह चुनें",
+        "inputs_header": "🏪 व्यावसायिक इनपुट",
+        "input_inventory": "वर्तमान स्टॉक (इकाइयां)",
+        "input_sales": "हाल की बिक्री (इकाइयां)",
+        "input_festival": "वर्तमान त्योहार सीजन",
+        "input_weather": "वर्तमान मौसम घटना",
+        "input_hartal": "हड़ताल (क्षेत्रীয় हड़ताल)",
+        "btn_run": "एजेंट पाइपलाइन चलाएं",
+        "trajectory_header": "⛓️ वर्कफ़्लो प्रक्षेपवक्र (CEO रूटिंग पथ)",
+        "sec_weather": "🌤️ मौसम डेटा",
+        "sec_forecast": "📈 मांग पूर्वानुमान",
+        "sec_inventory": "📦 स्टॉक स्वास्थ्य",
+        "sec_procurement": "⚙️ खरीद अनुशंसा",
+        "sec_supplier": "🤝 आपूर्तिकर्ता अनुशंसा",
+        "sec_executive": "🏆 कार्यकारी संक्षिप्त विवरण",
+        "awaiting_inputs": "इनपुट संकेतों की प्रतीक्षा है",
+        "awaiting_inputs_sub": "ऊपर दिए गए पैनल में अपना स्टॉक, बिक्री के आंकड़े, मौसमी कार्यक्रम और मौसम संकेतक सेट करें। पर्यवेक्षक रूटिंग शुरू करने के लिए 'एजेंट पाइपलाइन चलाएं' पर क्लिक करें।",
+        "weather_observed": "देखा गया मौसम",
+        "weather_temp": "तापमान",
+        "weather_rain": "बारिश की संभावना",
+        "weather_mult": "मौसम गुणक",
+        "prophet_forecast": "Prophet पूर्वानुमान",
+        "confidence_rating": "विश्वास रेटिंग",
+        "trends_score": "गूगल ट्रेंड्स स्कोर",
+        "hartal_mult": "हड़ताल गुणक",
+        "current_stock": "सुरक्षित स्टॉक",
         "calculated_gap": "स्टॉक की कमी",
         "safety_class": "सुरक्षा स्टॉक वर्गीकरण",
         "proc_qty": "खरीदी जाने वाली मात्रा",
