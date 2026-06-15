@@ -56,8 +56,9 @@ def run_daily_brief():
     inventory = db.get("inventory", 420)
     sales = db.get("sales", 140)
     
-    # 2. Determine current festival calendar season (e.g. check current date or default to Onam)
-    festival = "Onam"
+    # 2. Determine current festival calendar season dynamically
+    from services.calendar import get_active_festival
+    festival = get_active_festival()
     
     # 3. Setup initial state for automatic execution
     initial_state = {
