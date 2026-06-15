@@ -21,11 +21,15 @@ def executive_agent(state: AgentState) -> dict:
     
     risk_level = "Medium"
     
+    festival_clause = f"due to the upcoming {festival} festival" if festival != "None" else "due to seasonal demand"
+    weather_clause = f", {weather.lower()} weather conditions" if weather != "Normal" else ""
+    hartal_clause = ", and pre-hartal panic buying" if state.get("hartal", True) else ""
+    
     rec_text = (
-        "Demand is expected to surge due to Onam, rainfall conditions, and pre-hartal purchasing behavior.\n"
-        "Current inventory is insufficient.\n"
+        f"Demand is expected to rise {festival_clause}{weather_clause}{hartal_clause}.\n"
+        "Current inventory is insufficient to cover this period.\n"
         "Immediate procurement is recommended.\n"
-        "Supplier C has been selected due to superior reliability-adjusted cost performance."
+        f"{supplier} has been selected due to superior reliability-adjusted cost performance."
     )
     
     # Construct exact blueprint layout:
