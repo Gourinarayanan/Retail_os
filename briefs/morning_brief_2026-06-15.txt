@@ -1,0 +1,37 @@
+RetailOS Executive Morning Brief
+
+Festival:
+Onam
+
+Weather:
+Rain
+
+Hartal:
+Tomorrow
+
+Forecast:
+2900 Units
+
+Confidence:
+93%
+
+Inventory:
+420 Units
+
+Inventory Gap:
+2480 Units
+
+Recommended Procurement:
+2480 Units
+
+Selected Supplier:
+Supplier C
+
+Business Risk:
+Medium
+
+Executive Recommendation:
+Demand is expected to surge due to Onam, rainfall conditions, and pre-hartal purchasing behavior.
+Current inventory is insufficient.
+Immediate procurement is recommended.
+Supplier C has been selected due to superior reliability-adjusted cost performance.
