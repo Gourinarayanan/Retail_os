@@ -161,7 +161,7 @@ export default function OrdersPage() {
       </div>
 
       {/* ── Stats row ───────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         <StatPill count={pending.length}   label="Pending Approval" color="#fbbf24" icon={<Clock size={16} />} />
         <StatPill count={sent.length}      label="Sent via WhatsApp" color="#34d399" icon={<CheckCircle2 size={16} />} />
         <StatPill count={emergency.length} label="Emergency Orders"  color="#f43f5e" icon={<AlertTriangle size={16} />} />

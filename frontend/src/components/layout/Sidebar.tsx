@@ -1,186 +1,111 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
+  BarChart3,
   LayoutDashboard,
+  Lightbulb,
+  MessageSquare,
   Package,
+  Settings2,
   ShoppingCart,
+  Sparkles,
+  Store,
   TrendingUp,
   Truck,
-  Lightbulb,
-  BarChart3,
-  MessageSquare,
-  Sparkles,
-  Settings2,
   Zap,
 } from 'lucide-react';
 
-// ── Nav config ────────────────────────────────────────────────────────────────
-
 interface NavItem {
-  to:    string;
-  icon:  React.ReactNode;
+  to: string;
+  icon: React.ReactNode;
   label: string;
-  badge?: string;
+  short: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', icon: <LayoutDashboard size={17} />, label: 'Dashboard' },
-  { to: '/inventory', icon: <Package       size={17} />, label: 'Inventory' },
-  { to: '/orders',    icon: <ShoppingCart  size={17} />, label: 'Orders' },
-  { to: '/forecast',  icon: <TrendingUp    size={17} />, label: 'Forecast' },
-  { to: '/suppliers', icon: <Truck         size={17} />, label: 'Suppliers' },
-  { to: '/insights',  icon: <Lightbulb     size={17} />, label: 'Profit Insights' },
-  { to: '/analytics', icon: <BarChart3     size={17} />, label: 'Analytics' },
-  { to: '/chat',      icon: <MessageSquare size={17} />, label: 'AI Assistant' },
-  { to: '/settings',  icon: <Settings2     size={17} />, label: 'Settings' },
+  { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Today', short: 'Today' },
+  { to: '/inventory', icon: <Package size={18} />, label: 'Inventory', short: 'Stock' },
+  { to: '/orders', icon: <ShoppingCart size={18} />, label: 'Orders', short: 'Orders' },
+  { to: '/forecast', icon: <TrendingUp size={18} />, label: 'Forecast', short: 'Forecast' },
+  { to: '/suppliers', icon: <Truck size={18} />, label: 'Suppliers', short: 'Supply' },
+  { to: '/insights', icon: <Lightbulb size={18} />, label: 'Opportunities', short: 'Profit' },
+  { to: '/analytics', icon: <BarChart3 size={18} />, label: 'Analytics', short: 'Data' },
+  { to: '/chat', icon: <MessageSquare size={18} />, label: 'Ask AI', short: 'AI' },
+  { to: '/settings', icon: <Settings2 size={18} />, label: 'Settings', short: 'More' },
 ];
 
-// ── Component ─────────────────────────────────────────────────────────────────
+function isRouteActive(pathname: string, to: string) {
+  return pathname === to || (to !== '/dashboard' && pathname.startsWith(to));
+}
 
-export default function Sidebar() {
+function NavItemLink({ item, compact = false }: { item: NavItem; compact?: boolean }) {
   const location = useLocation();
+  const active = isRouteActive(location.pathname, item.to);
 
   return (
-    <aside
-      className="flex flex-col shrink-0 h-screen overflow-y-auto"
+    <NavLink
+      to={item.to}
+      id={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+      className={compact ? 'mobile-nav-item' : 'side-nav-item'}
       style={{
-        width: 'var(--sidebar-width)',
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border)',
+        color: active ? '#ffffff' : 'rgba(255,255,255,0.68)',
+        background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
+        borderColor: active ? 'rgba(255,255,255,0.18)' : 'transparent',
       }}
-      aria-label="Main navigation"
+      aria-current={active ? 'page' : undefined}
+      title={item.label}
     >
-      {/* ── Logo ─────────────────────────────────────────────────────── */}
-      <div
-        className="flex items-center gap-2.5 px-5 py-5"
-        style={{ borderBottom: '1px solid var(--border)' }}
-      >
-        <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-            boxShadow: '0 0 16px rgba(59,130,246,0.4)',
-          }}
-        >
-          <Zap size={16} className="text-white" />
-        </div>
-        <div>
-          <p className="text-sm font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
-            RetailWise
-          </p>
-          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            AI
-          </p>
-        </div>
-      </div>
+      <span className="side-nav-icon">{item.icon}</span>
+      <span className="side-nav-label">{compact ? item.short : item.label}</span>
+    </NavLink>
+  );
+}
 
-      {/* ── AI Status pill ───────────────────────────────────────────── */}
-      <div className="px-4 pt-4 pb-2">
-        <div
-          className="flex items-center gap-2 rounded-lg px-3 py-2"
-          style={{
-            background: 'rgba(16,185,129,0.08)',
-            border: '1px solid rgba(16,185,129,0.2)',
-          }}
-        >
-          <span className="dot-green dot-pulse" />
-          <span className="text-[11px] font-medium" style={{ color: '#6ee7b7' }}>
-            AI Pipeline Ready
-          </span>
-        </div>
-      </div>
-
-      {/* ── Nav items ────────────────────────────────────────────────── */}
-      <nav className="flex-1 px-3 py-2" aria-label="Page navigation">
-        <p className="section-title px-2 pt-2">Navigation</p>
-        <ul className="space-y-0.5" role="list">
-          {NAV_ITEMS.map((item) => {
-            const isActive = location.pathname === item.to ||
-              (item.to !== '/dashboard' && location.pathname.startsWith(item.to));
-
-            return (
-              <li key={item.to} role="listitem">
-                <NavLink
-                  to={item.to}
-                  id={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-150 group relative"
-                  style={{
-                    color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                    background: isActive
-                      ? 'rgba(59,130,246,0.12)'
-                      : 'transparent',
-                    border: isActive
-                      ? '1px solid rgba(59,130,246,0.2)'
-                      : '1px solid transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = 'transparent';
-                      (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)';
-                    }
-                  }}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  {/* Active indicator bar */}
-                  {isActive && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r"
-                      style={{ background: 'var(--accent-blue)' }}
-                    />
-                  )}
-
-                  {/* Icon */}
-                  <span
-                    style={{
-                      color: isActive ? '#93c5fd' : 'var(--text-muted)',
-                      transition: 'color 150ms',
-                    }}
-                  >
-                    {item.icon}
-                  </span>
-
-                  {/* Label */}
-                  <span className="font-medium flex-1">{item.label}</span>
-
-                  {/* Optional badge */}
-                  {item.badge && (
-                    <span className="badge-blue text-[10px] px-1.5 py-0.5">
-                      {item.badge}
-                    </span>
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/* ── Footer ───────────────────────────────────────────────────── */}
-      <div
-        className="px-4 py-4"
-        style={{ borderTop: '1px solid var(--border)' }}
-      >
-        <div
-          className="flex items-center gap-2 rounded-lg px-3 py-2"
-          style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
-        >
-          <Sparkles size={13} style={{ color: '#c4b5fd' }} />
-          <div>
-            <p className="text-[11px] font-medium" style={{ color: '#c4b5fd' }}>
-              Powered by Gemini
-            </p>
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              gemini-1.5-flash
-            </p>
+export default function Sidebar() {
+  return (
+    <>
+      <aside className="retail-sidebar" aria-label="Main navigation">
+        <div className="brand-block">
+          <div className="brand-mark">
+            <Store size={20} />
+          </div>
+          <div className="brand-copy">
+            <p>RetailWise AI</p>
+            <span>Owner command center</span>
           </div>
         </div>
-      </div>
-    </aside>
+
+        <div className="pipeline-card">
+          <div className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <span className="dot-green dot-pulse" />
+              Live agent stack
+            </span>
+            <Zap size={14} />
+          </div>
+          <p>Gemini, Prophet, inventory, suppliers and WhatsApp in one flow.</p>
+        </div>
+
+        <nav className="side-nav" aria-label="Page navigation">
+          {NAV_ITEMS.map((item) => (
+            <NavItemLink key={item.to} item={item} />
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <Sparkles size={15} />
+          <div>
+            <p>Gemini only</p>
+            <span>No OpenAI or Anthropic</span>
+          </div>
+        </div>
+      </aside>
+
+      <nav className="mobile-nav" aria-label="Mobile navigation">
+        {NAV_ITEMS.slice(0, 5).map((item) => (
+          <NavItemLink key={item.to} item={item} compact />
+        ))}
+      </nav>
+    </>
   );
 }

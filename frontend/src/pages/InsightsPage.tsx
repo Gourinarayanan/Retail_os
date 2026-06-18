@@ -57,7 +57,7 @@ function OpportunityCard({ opp, rank }: { opp: Opportunity; rank: number }) {
       </div>
 
       {/* Metrics row */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {[
           { label: 'Demand Uplift',  value: `+${opp.demand_uplift_pct}%`,           color: '#fbbf24' },
           { label: 'Extra Units',    value: `${Math.round(opp.extra_units)} units`,  color: 'var(--text-primary)' },
@@ -145,7 +145,7 @@ export default function InsightsPage() {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4">{[0,1,2,3].map((i) => <div key={i} className="skeleton h-64 rounded-xl" />)}</div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">{[0,1,2,3].map((i) => <div key={i} className="skeleton h-64 rounded-xl" />)}</div>
       ) : opps.length === 0 ? (
         <div className="card py-16 flex flex-col items-center gap-3" style={{ borderStyle: 'dashed' }}>
           <Lightbulb size={32} style={{ color: 'var(--text-muted)' }} />
@@ -155,7 +155,7 @@ export default function InsightsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {opps.map((opp, i) => <OpportunityCard key={`${opp.product_id}-${opp.festival}`} opp={opp} rank={i} />)}
         </div>
       )}

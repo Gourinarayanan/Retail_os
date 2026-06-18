@@ -150,7 +150,7 @@ export default function OrderApprovalModal({ order, onClose, onSent }: OrderAppr
           </div>
 
           {/* Quantity + Cost grid */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
               { label: 'Quantity', value: `${Math.round(order.final_qty)} ${order.unit}s`,   color: 'var(--text-primary)' },
               { label: 'Unit Price', value: `₹${order.price_per_unit}/${order.unit}`,         color: 'var(--text-secondary)' },

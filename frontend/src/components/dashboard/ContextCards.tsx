@@ -354,7 +354,7 @@ export default function ContextCards({ context, scenarios, loading }: ContextCar
   if (loading) {
     return (
       <div>
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 gap-4 mb-4">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
@@ -369,7 +369,7 @@ export default function ContextCards({ context, scenarios, loading }: ContextCar
       <ScenariosStrip scenarios={scenarios} />
 
       {/* 3 context cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <WeatherCard weather={context?.weather} />
         <HartalCard
           hartal_today={context?.hartal_today}

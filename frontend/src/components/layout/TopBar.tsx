@@ -1,47 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Cloud, CloudRain, Sun, CloudLightning, Wind, Droplets } from 'lucide-react';
+import {
+  AlertTriangle,
+  CalendarDays,
+  Cloud,
+  CloudLightning,
+  CloudRain,
+  MapPin,
+  Search,
+  Sun,
+  Wind,
+} from 'lucide-react';
 import { apiGet } from '../../api/client';
-import type { WeatherDay, FestivalEntry } from '../../types';
+import type { FestivalEntry, WeatherDay } from '../../types';
 
-// ── Page title map ────────────────────────────────────────────────────────────
-
-const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Morning Dashboard',
-  '/inventory': 'Inventory Intelligence',
-  '/orders':    'Order Management',
-  '/forecast':  'Demand Forecast',
-  '/suppliers': 'Supplier Comparison',
-  '/insights':  'Profit Insights',
-  '/analytics': 'Sales Analytics',
-  '/chat':      'AI Assistant',
-  '/settings':  'Settings',
+const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
+  '/dashboard': { title: 'Today', subtitle: 'Morning brief, context, and agent flow' },
+  '/inventory': { title: 'Inventory', subtitle: 'Stock health, expiry, and batch controls' },
+  '/orders': { title: 'Orders', subtitle: 'Review AI quantities and send supplier orders' },
+  '/forecast': { title: 'Forecast', subtitle: 'Prophet demand forecasts with scenario lift' },
+  '/suppliers': { title: 'Suppliers', subtitle: 'Reliability, rating, and regional risk' },
+  '/insights': { title: 'Opportunities', subtitle: 'Festival profit actions from live data' },
+  '/analytics': { title: 'Analytics', subtitle: 'Charts for sales, stock, and supplier performance' },
+  '/chat': { title: 'Ask AI', subtitle: 'Gemini assistant with RAG context' },
+  '/settings': { title: 'Settings', subtitle: 'Business info and API readiness' },
 };
 
-// ── Weather icon helper ───────────────────────────────────────────────────────
-
-function WeatherIcon({ condition, rain_heavy }: { condition: string; rain_heavy: boolean }) {
-  const c = condition.toLowerCase();
-  if (rain_heavy || c.includes('thunder'))      return <CloudLightning size={14} />;
-  if (c.includes('rain') || c.includes('drizzle')) return <CloudRain size={14} />;
-  if (c.includes('cloud'))                      return <Cloud size={14} />;
-  if (c.includes('clear') || c.includes('sun')) return <Sun size={14} />;
-  return <Wind size={14} />;
-}
-
-// ── Top-level context fetcher ─────────────────────────────────────────────────
-
 interface ContextResponse {
-  date: string;
   context: {
     weather?: { today: WeatherDay; tomorrow: WeatherDay };
     hartal_today?: boolean;
     hartal_tomorrow?: boolean;
     upcoming_festivals?: FestivalEntry[];
-    transport_strike?: boolean;
-    supply_disruption?: boolean;
   };
-  active_scenarios: unknown[];
+}
+
+function WeatherIcon({ day }: { day: WeatherDay }) {
+  const c = day.condition.toLowerCase();
+  if (day.rain_heavy || c.includes('thunder')) return <CloudLightning size={15} />;
+  if (c.includes('rain') || c.includes('drizzle')) return <CloudRain size={15} />;
+  if (c.includes('cloud')) return <Cloud size={15} />;
+  if (c.includes('clear') || c.includes('sun')) return <Sun size={15} />;
+  return <Wind size={15} />;
 }
 
 function useTodayContext() {
@@ -50,149 +50,80 @@ function useTodayContext() {
   useEffect(() => {
     apiGet<ContextResponse>('/context/today')
       .then((data) => setCtx(data.context))
-      .catch(() => {/* silent — TopBar is non-critical */});
+      .catch(() => undefined);
   }, []);
 
   return ctx;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function TopBar() {
-  const location  = useLocation();
-  const ctx       = useTodayContext();
+  const location = useLocation();
+  const ctx = useTodayContext();
   const businessName = import.meta.env.VITE_BUSINESS_NAME || 'RetailWise Store';
+  const page = PAGE_TITLES[location.pathname] ?? { title: 'RetailWise AI', subtitle: 'Retail operations workspace' };
+  const weather = ctx?.weather?.today;
+  const festival = ctx?.upcoming_festivals?.[0];
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-IN', {
-    weekday: 'long',
-    year:    'numeric',
-    month:   'long',
-    day:     'numeric',
+  const date = new Date().toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
   });
 
-  const pageTitle = PAGE_TITLES[location.pathname] ?? 'RetailWise AI';
-  const weather   = ctx?.weather?.today;
-  const nearFest  = ctx?.upcoming_festivals?.[0];
-
   return (
-    <header
-      id="top-bar"
-      className="flex items-center justify-between px-6 py-3 shrink-0"
-      style={{
-        background:   'var(--bg-card)',
-        borderBottom: '1px solid var(--border)',
-        height:       '56px',
-      }}
-      role="banner"
-    >
-      {/* ── Left: page title ───────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <h1
-          className="text-base font-semibold leading-none"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          {pageTitle}
-        </h1>
-        <span
-          className="text-[11px] px-2 py-0.5 rounded"
-          style={{ background: 'var(--border)', color: 'var(--text-muted)' }}
-        >
-          {dateStr}
-        </span>
+    <header id="top-bar" className="topbar" role="banner">
+      <div className="topbar-title">
+        <div>
+          <h1>{page.title}</h1>
+          <p>{page.subtitle}</p>
+        </div>
       </div>
 
-      {/* ── Right: pills ───────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
+      <div className="topbar-actions">
+        <div className="topbar-search">
+          <Search size={14} />
+          <span>Scan products, orders, suppliers</span>
+        </div>
 
-        {/* Hartal alert */}
+        <div className="context-pill">
+          <CalendarDays size={14} />
+          <span>{date}</span>
+        </div>
+
         {ctx?.hartal_today && (
-          <Pill color="red" id="pill-hartal-today">
-            🚨 Hartal Today
-          </Pill>
-        )}
-        {!ctx?.hartal_today && ctx?.hartal_tomorrow && (
-          <Pill color="amber" id="pill-hartal-tomorrow">
-            ⚠️ Hartal Tomorrow
-          </Pill>
-        )}
-
-        {/* Upcoming festival */}
-        {nearFest && nearFest.days_away <= 10 && (
-          <Pill color="violet" id={`pill-fest-${nearFest.festival.toLowerCase()}`}>
-            🎉 {nearFest.festival} in {nearFest.days_away}d
-          </Pill>
-        )}
-
-        {/* Weather pill */}
-        {weather && weather.condition !== 'Unknown' && (
-          <Pill
-            color={weather.rain_heavy ? 'blue' : 'gray'}
-            id="pill-weather"
-          >
-            <span className="flex items-center gap-1">
-              <WeatherIcon condition={weather.condition} rain_heavy={weather.rain_heavy} />
-              {weather.condition}
-              {weather.rain_mm > 0 && (
-                <span className="flex items-center gap-0.5">
-                  <Droplets size={11} />
-                  {weather.rain_mm}mm
-                </span>
-              )}
-              · {weather.temp_max}°C
-            </span>
-          </Pill>
-        )}
-
-        {/* Business name */}
-        <div
-          className="flex items-center gap-2 rounded-lg px-3 py-1.5 ml-1"
-          style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
-        >
-          <div
-            className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-            style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', color: 'white' }}
-            aria-hidden
-          >
-            {businessName.charAt(0).toUpperCase()}
+          <div className="context-pill danger">
+            <AlertTriangle size={14} />
+            <span>Hartal today</span>
           </div>
-          <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-            {businessName}
-          </span>
+        )}
+
+        {!ctx?.hartal_today && ctx?.hartal_tomorrow && (
+          <div className="context-pill warning">
+            <AlertTriangle size={14} />
+            <span>Hartal tomorrow</span>
+          </div>
+        )}
+
+        {festival && festival.days_away <= 10 && (
+          <div className="context-pill violet">
+            <CalendarDays size={14} />
+            <span>{festival.festival} in {festival.days_away}d</span>
+          </div>
+        )}
+
+        {weather && weather.condition !== 'Unknown' && (
+          <div className={weather.rain_heavy ? 'context-pill info' : 'context-pill'}>
+            <WeatherIcon day={weather} />
+            <span>{weather.condition} {weather.temp_max}C</span>
+          </div>
+        )}
+
+        <div className="store-chip">
+          <span className="store-avatar">{businessName.charAt(0).toUpperCase()}</span>
+          <span className="store-name">{businessName}</span>
+          <MapPin size={13} />
         </div>
       </div>
     </header>
-  );
-}
-
-// ── Pill ──────────────────────────────────────────────────────────────────────
-
-type PillColor = 'blue' | 'amber' | 'red' | 'violet' | 'gray';
-
-const PILL_STYLES: Record<PillColor, React.CSSProperties> = {
-  blue:   { background: 'rgba(59,130,246,0.12)',  border: '1px solid rgba(59,130,246,0.25)',  color: '#93c5fd' },
-  amber:  { background: 'rgba(245,158,11,0.12)',  border: '1px solid rgba(245,158,11,0.25)',  color: '#fcd34d' },
-  red:    { background: 'rgba(244,63,94,0.12)',   border: '1px solid rgba(244,63,94,0.25)',   color: '#fda4af' },
-  violet: { background: 'rgba(139,92,246,0.12)',  border: '1px solid rgba(139,92,246,0.25)',  color: '#c4b5fd' },
-  gray:   { background: 'rgba(100,116,139,0.10)', border: '1px solid rgba(100,116,139,0.2)', color: '#94a3b8' },
-};
-
-function Pill({
-  color,
-  id,
-  children,
-}: {
-  color: PillColor;
-  id:    string;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      id={id}
-      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-      style={PILL_STYLES[color]}
-    >
-      {children}
-    </span>
   );
 }

@@ -95,7 +95,7 @@ function ForecastCard({ result }: { result: ForecastResult }) {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {[
           { label: 'Baseline/day', value: result.baseline_daily.toFixed(1) },
           { label: 'Multiplier',   value: `×${result.multiplier.toFixed(2)}` },
@@ -186,14 +186,14 @@ export default function ForecastPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4">{[0,1,2,3].map((i) => <div key={i} className="skeleton h-72 rounded-xl" />)}</div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">{[0,1,2,3].map((i) => <div key={i} className="skeleton h-72 rounded-xl" />)}</div>
       ) : filtered.length === 0 ? (
         <div className="card py-12 flex flex-col items-center gap-2" style={{ borderStyle: 'dashed' }}>
           <TrendingUp size={28} style={{ color: 'var(--text-muted)' }} />
           <p style={{ color: 'var(--text-muted)' }}>Run morning briefing to generate Prophet forecasts</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {filtered.map((r) => <ForecastCard key={r.sku} result={r} />)}
         </div>
       )}

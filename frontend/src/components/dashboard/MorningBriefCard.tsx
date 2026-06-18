@@ -185,7 +185,7 @@ function StatBar({ briefing }: { briefing: Briefing }) {
   const totalCost = orders.reduce((s, o) => s + (o.total_cost || 0), 0);
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
       {[
         { label: 'Critical Alerts', value: critical, color: critical > 0 ? '#f43f5e' : '#6ee7b7', badge: critical > 0 ? 'badge-red' : 'badge-green' },
         { label: 'Pending Orders',  value: pending,  color: '#fcd34d', badge: 'badge-amber' },
@@ -221,7 +221,7 @@ export default function MorningBriefCard({ briefing, loading, onRefresh }: Morni
         <div className="skeleton h-3 w-full rounded" />
         <div className="skeleton h-3 w-4/5 rounded" />
         <div className="skeleton h-3 w-3/4 rounded" />
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {[0,1,2,3].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}
         </div>
       </div>

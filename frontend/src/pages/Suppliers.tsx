@@ -143,7 +143,7 @@ function SupplierScoreCard({ supplier, rank }: { supplier: SupplierSummary; rank
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
         <div className="rounded-lg px-3 py-2 text-center"
           style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
           <p style={{ color: 'var(--text-muted)' }}>Deliveries (90d)</p>
@@ -209,13 +209,13 @@ export default function SuppliersPage() {
       </div>
 
       {loading
-        ? <div className="grid grid-cols-2 gap-4">{[0,1,2,3].map(i => <div key={i} className="skeleton h-72 rounded-xl" />)}</div>
+        ? <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">{[0,1,2,3].map(i => <div key={i} className="skeleton h-72 rounded-xl" />)}</div>
         : ranked.length === 0
           ? <div className="card py-12 flex flex-col items-center gap-2" style={{ borderStyle: 'dashed' }}>
               <Truck size={26} style={{ color: 'var(--text-muted)' }} />
               <p style={{ color: 'var(--text-muted)' }}>No suppliers found</p>
             </div>
-          : <div className="grid grid-cols-2 gap-4">
+          : <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
               {ranked.map((s, i) => <SupplierScoreCard key={s.id} supplier={s} rank={i} />)}
             </div>
       }

@@ -179,7 +179,7 @@ export default function OrderCard({ order, onUpdated, onRejected }: OrderCardPro
         </div>
 
         {/* ── Quantity input + Reasoning (side by side) ──────────── */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {/* Left: qty input + note */}
           <div className="flex flex-col gap-3">
             <EditableQuantityInput
