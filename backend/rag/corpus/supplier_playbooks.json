@@ -1,0 +1,30 @@
+[
+  {
+    "title": "When to Prefer Amul Distributor Over Others for Dairy",
+    "content": "Amul Distributor Thrissur should always be the primary and only source for dairy products (milk, eggs, curd). Reasons: (1) 98% on-time delivery rate — highest in the network; (2) Fixed MRP-based pricing — no price negotiation required; (3) Refrigerated vehicle delivery maintains cold chain; (4) Amul brand quality is consistent and customer-trusted; (5) No other supplier in the network supplies dairy reliably. Never split dairy orders between Amul and another supplier. For emergency dairy orders (hartal eve, low stock alerts), call Anoop Varma directly at the number on file. Amul allows same-day orders before 10 AM for next-morning delivery in Thrissur."
+  },
+  {
+    "title": "Sri Krishna Wholesale: Best for Non-Dairy Staples with Reliability Priority",
+    "content": "Sri Krishna Wholesale (Thrissur) is the recommended primary supplier for staples, snacks, beverages, cleaning, and personal care when reliability and proximity matter more than price. Their 95% on-time delivery rate is second only to Amul. Price is 3% above market average, which is a reasonable premium for reliability. Advantages: (1) Local Thrissur delivery — unaffected by inter-district road disruptions; (2) Krishna Nair is personally known to most Thrissur store owners — relationship matters; (3) Flexible minimum order quantities; (4) Will deliver even in moderate rain. Best use case: weekly staple orders, any order close to a hartal, monsoon season orders. Use Sri Krishna as the default when reliability is more important than saving 3-8%."
+  },
+  {
+    "title": "Metro Cash & Carry Kochi: Best for Bulk Volume and Price",
+    "content": "Metro Cash & Carry Kochi offers the best combination of price (-5% vs market) and reasonable reliability (89% on-time). Best for bulk monthly orders where delivery timing is flexible. Metro has a bulk discount threshold — orders above 50 units of any item get an additional 3% off. Metro supplies all categories except dairy. Disadvantage: 89% reliability means 1 in 10 orders may be late — do not use Metro for daily or time-critical orders. Best use cases: (1) Monthly cleaning and personal care stock-up; (2) Pre-festival large orders (Onam, Christmas) placed 2 weeks in advance; (3) When Palakkad is unavailable due to rain or transport disruption. Contact: Priya Menon handles accounts."
+  },
+  {
+    "title": "Palakkad Agro Traders: Price vs Risk Tradeoff",
+    "content": "Palakkad Agro Traders offers the cheapest prices (-8% vs market average) for staples and spices, but with significant reliability risk. 71% on-time delivery rate means nearly 3 in 10 orders arrive late. Risk factors: (1) Palakkad-Thrissur road (NH 544) floods frequently during monsoon June-August; (2) Transport strikes affect Palakkad lorry routes first; (3) Suresh Kumar has been known to prioritize larger customers over smaller stores during peak demand periods. Recommended use: only for non-time-sensitive staples and spices during dry season (November-February) when weather risk is low. Never use Palakkad Agro for: pre-hartal orders, pre-festival orders, monsoon season orders, or any order where late delivery would cause a stockout."
+  },
+  {
+    "title": "Supplier Scoring for Mixed Orders: Weighted Decision Logic",
+    "content": "When multiple items need to be ordered, consolidate orders to minimize supplier complexity. Rule 1: Group all dairy with Amul — never split. Rule 2: If both staples and spices are needed and rain is not forecast, consider Palakkad Agro for cost savings, but place the order 4 days in advance to absorb potential delays. Rule 3: For weekly orders with both staples and snacks, prefer Sri Krishna over Metro for same-day flexibility. Rule 4: During Onam/festival season, use Sri Krishna as primary (reliability) and Metro as secondary (price/bulk). Rule 5: Never have fewer than 2 active suppliers for any category — single-supplier risk is too high for a small store. The composite score formula (Price 50%, Reliability 30%, Regional 20%) correctly captures this logic."
+  },
+  {
+    "title": "Negotiating with Suppliers: Kerala Context",
+    "content": "Kerala kirana supplier relationships are built on personal trust and consistency. Tips: (1) Pay Sri Krishna Wholesale and Amul on time — they give priority to stores with clean payment history; (2) Palakkad Agro Traders responds well to advance cash payment — can negotiate an extra 2-3% off; (3) Metro Cash & Carry requires a formal purchase order — keep your account documents current; (4) All suppliers appreciate consistency — do not ghost a supplier for 2 weeks and then place a large emergency order; (5) Festival season pre-orders (placed 3 weeks early) often get better prices and guaranteed allocation from Sri Krishna and Metro. WhatsApp is the preferred communication channel for all 4 suppliers in the RetailWise network."
+  },
+  {
+    "title": "Reading Supplier Delivery History: Red Flags and Green Flags",
+    "content": "Green flags in a supplier's delivery history: (1) On-time rate consistently above 90% over 90 days; (2) Quantity received matches quantity ordered (no short-delivery); (3) No complaint entries in the last 60 days; (4) Average rating of 4 or above. Red flags: (1) On-time rate below 75% — investigate before placing critical orders; (2) Multiple 'Short delivery' complaints — supplier may be over-committed; (3) Rating of 2 or below on multiple recent deliveries — escalate to supplier relationship manager; (4) Pattern of late deliveries on rainy days — indicates transport dependency risk. For Palakkad Agro Traders specifically: a drop in on-time rate below 60% during June-August is expected and acceptable — switch to Sri Krishna during this period."
+  }
+]

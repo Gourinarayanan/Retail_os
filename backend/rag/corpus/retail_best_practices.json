@@ -1,0 +1,30 @@
+[
+  {
+    "title": "FIFO Stock Rotation: Preventing Expiry Loss in a Kerala Store",
+    "content": "FIFO (First In, First Out) stock rotation is the single most important practice for reducing expiry waste in a kirana store. When new stock arrives, always place it behind existing stock — older batches must sell first. For dairy (milk 2-day shelf life, curd 5-day shelf life): physically move older packets to the front of the refrigerator when new delivery arrives. For snacks (banana chips, mixture): old packets go in front of the display, new at the back. For spices: rarely expires in-season, but check batch dates when ordering. Signs of poor FIFO practice: customer complaints about curd taste, returned packets, expiry write-offs exceeding 2% of stock value per month. Best practice: mark delivery date with a marker on each batch when it arrives."
+  },
+  {
+    "title": "Optimal Reorder Points for Kerala Daily-Use Items",
+    "content": "Reorder points should be calculated based on lead time + safety stock, not just when the shelf looks low. For milk (lead time 1 day, avg demand 85/day): reorder when stock drops below 2 days = 170 packets. For eggs (lead time 1 day, avg demand 12 trays/day): reorder when below 2 days = 24 trays. For rice (lead time 2 days, avg demand 18 bags/day): reorder when below 7 days = 126 bags (weekly order cycle). For coconut oil (lead time 2 days, avg demand 9 bottles/day): reorder when below 7 days = 63 bottles. The rule of thumb for a Thrissur kirana: always maintain minimum stock that covers lead time + 2 safety days for perishables, and lead time + 5 days for non-perishables."
+  },
+  {
+    "title": "Pricing and Margin Management for Kerala Kirana Stores",
+    "content": "Typical gross margins in a Kerala kirana store by category: Dairy 12-15% (tightly regulated by MRP), Staples (rice, oil, flour) 15-18%, Snacks 25-35% (best margin category), Beverages 20-28%, Spices 20-30%, Cleaning 18-22%, Personal care 18-25%. Strategy: snacks and spices subsidize the low margin on dairy and staples. Never discount banana chips or mixture below 20% off — they are high-margin items. Festival season is not the time to discount; it is the time to maximize volume at full margin. Price increases: always follow MRP for branded items. For loose items (dal, rice in bulk), adjust pricing monthly based on wholesale price changes from Metro or Sri Krishna."
+  },
+  {
+    "title": "Shelf Layout Best Practices for Sales Uplift",
+    "content": "Shelf layout directly impacts sales in a kirana store. Key principles: (1) Place high-margin snacks at eye level (120-150cm from floor); (2) Dairy products must be refrigerated and clearly visible from the entrance — this drives daily footfall; (3) Place spices near the billing counter — impulse purchase zone; (4) Group related items: place tea powder near coffee and sugar — basket size increases; (5) Festival displays work — create a dedicated Onam/Christmas display shelf with themed products; (6) Keep cleaning and personal care at back of store — destination category, customers will find it; (7) New products should be placed at eye level for the first 2 weeks for trial. Seasonal reorganization before Onam, Christmas, and Eid pays dividends in sales."
+  },
+  {
+    "title": "Cash Flow Management: Order Timing and Payment",
+    "content": "Cash flow is the primary constraint for most Kerala kirana stores, not inventory. Practical rules: (1) Do not order more than 10 days of stock for any item — capital gets locked; (2) Negotiate 7-day credit terms with Sri Krishna Wholesale (most long-term accounts have this); (3) Amul Distributor requires cash on delivery — budget for this in daily float; (4) Pay Metro Cash & Carry within invoice terms to maintain good standing; (5) Emergency orders always cost more — build a 15% cash reserve for emergency procurement; (6) Festival season requires 40-60% more working capital — plan 3 weeks ahead. The worst cash flow mistake: over-ordering excess coconut oil or cleaning products that sit for 90 days — this ties up capital that should be used for high-turnover daily items."
+  },
+  {
+    "title": "Customer Loyalty in Kerala Kirana: Relationship Selling",
+    "content": "Kerala kirana store loyalty is built on relationships, not points programs. Key practices: (1) Remember regular customers' usual items and alert them if unavailable ('Milk won't come today, shall I keep aside for tomorrow?'); (2) WhatsApp orders from trusted regular customers — respond within 30 minutes; (3) Home delivery for elderly customers in the neighborhood builds irreplaceable loyalty; (4) Festival greetings (Onam, Eid, Christmas, Vishu) sent via WhatsApp to regular customers are appreciated; (5) Allow small credit ('kal tharaam') for trusted customers during cash shortage — this is culturally expected in Kerala kirana commerce; (6) When a product is out of stock, proactively suggest the nearest alternative rather than just saying 'illa' (not available). Loyalty acquired from these practices has 5-10 year shelf life."
+  },
+  {
+    "title": "Managing Expiry: Markdown and Write-Off Strategy",
+    "content": "When inventory analysis flags items expiring within 10 days, take immediate action: Days 10-7 before expiry: offer 10% discount or bundle with a popular item (e.g., Banana Chips near-expiry + Tea Powder at combo price). Days 7-4 before expiry: increase discount to 15%, move to front of shelf, announce on store WhatsApp group. Days 3-1 before expiry: offer at cost price or below — a small loss is better than a full write-off. Day 0 (expiry): remove from shelf immediately. Write-off as a business expense. For bulk perishable losses (e.g., a full tray of eggs), record the quantity and calculate the inventory shrinkage rate. Aim for less than 1.5% monthly shrinkage. High shrinkage usually means over-ordering, poor FIFO, or ordering without checking current stock levels."
+  }
+]

@@ -1,24 +1,73 @@
-# Byte-compiled / optimized / DLL files
+# ─── PYTHON RUNTIME ──────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
 
-# Environments
+# ─── PYTHON ENVIRONMENTS ─────────────────────────────────────────────────
 .env
 .env.local
 .env.*
+!.env.example
 venv/
 ENV/
 env/
 .venv/
+.venv311/
+backend/.venv/
+backend/.venv311/
 
-# Database files
-database.json
+# ─── NODE & FRONTEND ──────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+frontend/dist/
+.parcel-cache/
+.cache/
 
-# IDEs and editors
+# ─── DATABASE & CACHE ────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+retailwise.db
+database/retailwise.db
+rag/chroma_db/
+.tools/
+__chroma_cache__/
+
+# ─── IDEs & EDITORS ──────────────────────────────────────────────────────
 .vscode/
 .idea/
-
-# OS files
+*.swp
+*.swo
+*~
 .DS_Store
 Thumbs.db
+.vscode-test/
+.history/
+
+# ─── LOCKS (optional: commit them for reproducibility) ──────────────────
+# Uncomment if you prefer to push lock files for reproducibility
+# package-lock.json
+# poetry.lock
+# pipfile.lock
+
+# ─── OS FILES ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── PROJECT-SPECIFIC ────────────────────────────────────────────────────
+.tsupgrader/
+.pytest_cache/
+htmlcov/
+.coverage
+*.log
+tmp/
+temp/
