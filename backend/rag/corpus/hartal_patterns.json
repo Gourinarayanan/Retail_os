@@ -26,5 +26,37 @@
   {
     "title": "Emergency Order Thresholds: When to Act Immediately",
     "content": "Emergency orders in a Kerala kirana store should be placed immediately (same day, regardless of order cycle) when: (1) Any perishable item (milk, eggs) falls below 2 days remaining stock; (2) Any item with high hartal demand (milk, rice, snacks) falls below 3 days when a hartal is confirmed within 24 hours; (3) Any item drops to zero stock (out-of-stock costs both revenue and customer loyalty); (4) A festival is 3 days away and festival-critical items are below the 7-day threshold. Emergency orders always justify the 15% premium cost from non-cycle orders. The revenue loss from a stockout far exceeds the cost premium."
+  },
+  {
+    "title": "Hartals Called by Different Political Groups: Compliance Rates",
+    "content": "In Thrissur district, hartal compliance varies by political caller: CPM-called hartals (state level) see 95% compliance — virtually all shops close, no deliveries. Congress-called hartals see 85-90% compliance. BJP-called hartals: 70-80% compliance. SDPI/Social organization hartals: 60-75% compliance — some shops risk staying open. District-level hartals (called by Thrissur district units) typically have 80-85% compliance. Local (ward-level) hartals may have only 50% compliance and may not affect your supplier deliveries. For store owners: err on the side of caution during any well-publicised hartal — remaining open during a major hartal can invite social pressure and damage community standing."
+  },
+  {
+    "title": "Pre-Hartal Stock Priority List for Noufan General Store",
+    "content": "When a hartal is confirmed for tomorrow, follow this stock priority order: Priority 1 (order tonight): Amul Milk packets, Amul Eggs, Amul Curd — call Anoop Varma directly for emergency pre-hartal delivery. Priority 2: Rice (Matta, Ponni, Basmati) — call Sri Krishna for same-evening delivery. Priority 3: Bru Coffee, Tapal Tea — beverages for the hartal day. Priority 4: Banana Chips, Mixture, Biscuits — all snack categories surge day-before and on hartal. Priority 5: Coconut Oil (Parachute brand preferred) — families cook heavily on hartal day. Priority 6: Bread and butter — quick meals. For multi-day hartals (rare): double all quantities and call Metro for bulk same-day pickup."
+  },
+  {
+    "title": "Hartal Impact on Expiry Management",
+    "content": "Hartals create expiry risk for perishables. If milk is at 1-day remaining stock before a hartal, the calculus changes: hartal day pre-rush demand will absorb excess milk. However, if you over-order for the hartal pre-rush and the hartal is cancelled last minute (which happens 10-15% of the time), you face excess perishables. Strategy: When a hartal is confirmed, increase milk and curd orders by 60% (not 80-100% — leave some buffer for cancellation risk). When a hartal is announced but not yet confirmed, increase only by 30%. For bread: order 50% extra on confirmed hartals — bread sells extremely well on hartal eves. Track hartal cancellations — if your local political group has cancelled twice in the past month, apply a 20% confidence discount to next hartal announcement."
+  },
+  {
+    "title": "Kerala Rain Alert: How to Adjust Orders",
+    "content": "When the Kerala State Disaster Management Authority (KSDMA) issues a Yellow or Orange alert for Thrissur district, take these actions: Yellow Alert (Heavy Rain possible): reduce perishables by 10%, increase tea by 20%, contact Palakkad Agro Traders to check delivery feasibility. Orange Alert (Heavy Rain expected): reduce perishables by 20%, switch all pending Palakkad orders to Sri Krishna or Metro, increase snack and beverage orders by 15%. Red Alert (Extremely Heavy Rain — rare): treat as a hartal day for supplier purposes — no deliveries expected. Emergency stock from Metro Kochi if possible. KSDMA alerts are published on the government website and on major Malayalam news channels' apps."
+  },
+  {
+    "title": "Flash Hartals and Short-Notice Events: Crisis Protocol",
+    "content": "Flash hartals (announced less than 3 hours before) are the hardest to manage. They are typically called in response to political events: an assassination attempt, a court ruling, or a major political controversy. Response protocol: If you hear about a flash hartal before 12 PM: place emergency perishable orders immediately and contact Sri Krishna Wholesale. If flash hartal is announced after 12 PM: focus on selling what you have through early evening (people buy snacks/beverages before going home) and accept reduced hours. Do not attempt deliveries or supplier visits on flash hartal afternoons — safety risk. Inform WhatsApp customer group about early closing. Resume normal operations next morning."
+  },
+  {
+    "title": "Hartal Frequency Trends in Kerala",
+    "content": "Kerala has one of the highest hartal frequencies in India. Historical average: 3-6 hartals per year at the state level, plus 5-10 district or local hartals. Thrissur district specifically averages about 12-15 days per year with some form of work stoppage (including partial hartals). Hartals cluster around: election periods, budget announcements, major political events, and in the June-July monsoon period (which coincides with political assemblies). Retail planning implication: always maintain a minimum 3-day buffer of perishables for any hartal-vulnerable item. A store that is out of milk on hartal day loses that customer for 2-3 future visits."
+  },
+  {
+    "title": "Cooking Gas Shortage and Alternate Cooking Demand",
+    "content": "LPG gas shortages in Kerala (which happen periodically due to supply disruptions or government subsidy changes) shift cooking patterns. When gas is scarce, some customers switch to electric cooking or reduce home cooking. This reduces overall demand for cooking-heavy items temporarily. However, kerosene demand (if your store stocks it) rises. More importantly, ready-to-eat snacks and biscuits rise as families eat lighter. The 2022 LPG price hike in Kerala caused a temporary 10% reduction in cooking-heavy item purchases at kirana level. Monitor LPG news and adjust oil and spice orders accordingly during shortage periods."
+  },
+  {
+    "title": "Supplier Delivery Failure Protocols",
+    "content": "When a supplier fails to deliver on an expected day, follow this escalation: Step 1: Call the supplier contact directly — delays often have a logistical fix (e.g., reschedule for evening). Step 2: If delivery cannot happen today, identify which items are at critical stock level. Step 3: For critical items (milk, eggs): call alternate supplier immediately (for dairy, Amul is the only option — if Amul fails, nearest neighboring store can sometimes sell wholesale). Step 4: For non-critical items (cleaning, personal care): defer until next scheduled delivery and adjust customer stock on shelves (front-face remaining stock). Step 5: Log the failure with date and reason for the supplier rating. Three failures in 90 days warrant a supplier review."
   }
 ]
