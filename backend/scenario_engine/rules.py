@@ -338,6 +338,32 @@ SCENARIO_RULES: list[dict] = [
         "action": "Ensure shelves are well-stocked for weekend traffic.",
         "supply_warning": None,
     },
+    {
+        "id": "cold_weather",
+        "name": "Cold Snap Tomorrow",
+        "trigger": lambda ctx: (
+            ctx.get("weather", {})
+            .get("tomorrow", {})
+            .get("temp", 999.0) < 20.0
+        ),
+        "urgency": "MEDIUM",
+        "category_impacts": {
+            "beverages": {
+                "multiplier": 1.50,
+                "reason": "Temperature dropping below 20°C — huge spike in hot coffee and tea demand.",
+            },
+            "snacks": {
+                "multiplier": 1.30,
+                "reason": "People crave more snacks during cold weather.",
+            },
+            "meat": {
+                "multiplier": 1.25,
+                "reason": "More heavy cooking and soup-making on cold days.",
+            },
+        },
+        "action": "Increase orders for Tea, Coffee, and Meat to prepare for the cold snap.",
+        "supply_warning": None,
+    },
 ]
 
 

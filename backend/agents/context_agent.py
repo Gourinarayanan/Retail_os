@@ -136,8 +136,24 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         logger.error("[context_agent] Calendar fetch failed: %s", exc)
         upcoming_festivals = []
 
+    # ── Simulated 15-Pillar Hooks ─────────────────────────────────────────
+    # These mock values represent factors where real-time APIs are not yet integrated.
+    # In a production ERP, these would be fetched via SQL, ERP APIs, or web scraping.
+    simulated_factors = {
+        "competitor_pricing": "normal",
+        "inflation_rate_percent": 4.5,
+        "supply_chain_delays": False,
+        "traffic_congestion": "moderate",
+        "consumer_confidence": "high",
+        "social_media_sentiment": "positive",
+        "local_events": ["School Reopening in 5 days"],
+        "marketing_campaigns_active": True,
+        "shelf_placement_status": "optimized"
+    }
+
     # ── Step 4: Assemble state["context"] per spec Section 7 Agent 2d ────
     state["context"] = {
+        "simulated_factors": simulated_factors,
         "weather": {
             "today": weather_today,
             "tomorrow": weather_tomorrow,

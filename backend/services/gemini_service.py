@@ -15,28 +15,44 @@ from datetime import date
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 logger = logging.getLogger(__name__)
 
-# ── Model initialisation ──────────────────────────────────────────────────────
+# ── Gemini Model initialisation ───────────────────────────────────────────────
 
-_API_KEY: str = os.environ.get("GEMINI_API_KEY", "")
-_MODEL_NAME: str = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+_GEMINI_API_KEY: str = os.environ.get("GEMINI_API_KEY", "")
+_GEMINI_MODEL_NAME: str = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 
-if _API_KEY:
-    genai.configure(api_key=_API_KEY)
+if _GEMINI_API_KEY:
+    genai.configure(api_key=_GEMINI_API_KEY)
 else:
     logger.warning("[gemini] GEMINI_API_KEY not set — all Gemini calls will fail.")
 
 # Plain text model
-_model = genai.GenerativeModel(_MODEL_NAME)
+_gemini_model = genai.GenerativeModel(_GEMINI_MODEL_NAME)
 
 # JSON-constrained model (forces application/json response)
-_model_json = genai.GenerativeModel(
-    _MODEL_NAME,
+_gemini_model_json = genai.GenerativeModel(
+    _GEMINI_MODEL_NAME,
     generation_config={"response_mime_type": "application/json"},
 )
+
+
+# ── Groq Model initialisation (Fallback) ──────────────────────────────────────
+
+_GROQ_API_KEY: str = os.environ.get("GROQ_API_KEY", "")
+_GROQ_MODEL_NAME: str = "llama-3.1-8b-instant"
+_groq_client = None
+
+if _GROQ_API_KEY:
+    try:
+        from groq import Groq
+        _groq_client = Groq(api_key=_GROQ_API_KEY)
+    except ImportError:
+        logger.warning("[gemini] Groq package not installed. Fallback disabled.")
+else:
+    logger.warning("[gemini] GROQ_API_KEY not set in .env — Llama-3 fallback is disabled.")
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -70,8 +86,25 @@ def generate(prompt: str) -> str:
     Raises:
         Exception on Gemini API errors (callers should handle).
     """
-    response = _model.generate_content(prompt)
-    return response.text
+    try:
+        response = _gemini_model.generate_content(prompt)
+        return response.text
+    except Exception as exc:
+        logger.warning("[gemini] Gemini generation failed: %s", exc)
+        
+        if _groq_client:
+            logger.info("[gemini] 🔄 Falling back to Groq Llama-3...")
+            try:
+                chat_completion = _groq_client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model=_GROQ_MODEL_NAME,
+                )
+                return chat_completion.choices[0].message.content or ""
+            except Exception as groq_exc:
+                logger.error("[gemini] Groq fallback also failed: %s", groq_exc)
+                raise
+        else:
+            raise
 
 
 def generate_json(prompt: str) -> dict:
@@ -86,11 +119,25 @@ def generate_json(prompt: str) -> dict:
         Parsed dict. Returns {} on any parse or API error.
     """
     try:
-        response = _model_json.generate_content(prompt)
+        response = _gemini_model_json.generate_content(prompt)
         raw: str = response.text
     except Exception as exc:
-        logger.error("[gemini] generate_json API error: %s", exc)
-        return {}
+        logger.warning("[gemini] Gemini JSON generation failed: %s", exc)
+        
+        if _groq_client:
+            logger.info("[gemini] 🔄 Falling back to Groq Llama-3 (JSON mode)...")
+            try:
+                chat_completion = _groq_client.chat.completions.create(
+                    messages=[{"role": "user", "content": prompt}],
+                    model=_GROQ_MODEL_NAME,
+                    response_format={"type": "json_object"},
+                )
+                raw = chat_completion.choices[0].message.content or "{}"
+            except Exception as groq_exc:
+                logger.error("[gemini] Groq fallback JSON failed: %s", groq_exc)
+                return {}
+        else:
+            return {}
 
     # Try parsing directly first
     try:
@@ -224,9 +271,9 @@ Good morning {owner_name}. Here is your RetailWise briefing for {run_date}.
 🔔 TODAY'S SITUATION
 [2-3 bullets ONLY if there is something notable — hartal, festival, rain. Skip if nothing significant.]
 
-📦 INVENTORY
-[One line per product: [emoji] Product — X days remaining. [status word].]
-[Use: 🚫 OUT OF STOCK | 🔴 Critical | 🟡 Low | 🟢 Healthy | ⚪ Excess]
+📦 INVENTORY ALERTS
+[List ALL alerts provided in the INVENTORY STATUS section below using bullet points.]
+[If the status says 'All inventory items are HEALTHY', then output EXACTLY: 'All inventory items are currently healthy with sufficient stock remaining.']
 
 🛒 ORDERS READY FOR YOUR APPROVAL
 [One line per order: "Daily/Weekly/Emergency: X units ProductName from SupplierName — ₹Total"]
@@ -259,6 +306,7 @@ def generate_opportunity_narrative(
     demand_uplift_pct: int,
     extra_revenue_est: int,
     extra_profit_est: int,
+    playbook_context: str = "",
 ) -> str:
     """
     Write a 2-sentence business advice card for a profit opportunity.
@@ -273,7 +321,9 @@ def generate_opportunity_narrative(
         f"Expected demand increase: {demand_uplift_pct}%\n"
         f"Estimated extra revenue if fully stocked: ₹{extra_revenue_est:,}\n"
         f"Estimated extra profit: ₹{extra_profit_est:,}\n\n"
+        f"RETAIL PLAYBOOK CONTEXT:\n{playbook_context}\n\n"
         f"Write like a trusted business advisor. Be specific. Mention numbers.\n"
+        f"STRICT INSTRUCTION: Base your strategy ONLY on the Playbook Context above if available. Do not invent strategies outside of this text.\n"
         f"No generic statements. No filler. 2 sentences only."
     )
     try:
@@ -363,6 +413,15 @@ def _build_context_summary(context: dict) -> str:
             f"({f['duration_days']}-day event) [Google Calendar]"
         )
 
+    # ── Simulated Factors (15-Pillar Matrix) ──
+    sim_factors = context.get("simulated_factors", {})
+    if sim_factors:
+        lines.append("\n--- Advanced 15-Pillar Simulated Data ---")
+        for key, val in sim_factors.items():
+            if isinstance(val, list):
+                val = ", ".join(val)
+            lines.append(f"{key.replace('_', ' ').title()}: {val}")
+
     return "\n".join(lines) if lines else "No significant external signals today."
 
 
@@ -373,17 +432,23 @@ def _build_inventory_summary(inventory_status: dict) -> str:
         "CRITICAL": "🔴",
         "LOW": "🟡",
         "REORDER": "🔵",
-        "HEALTHY": "🟢",
-        "EXCESS": "⚪",
     }
+    alert_count = 0
     for sku, info in inventory_status.items():
-        emoji = status_emoji.get(info.get("status", "HEALTHY"), "🟢")
-        days = info.get("days_remaining", 0)
         status = info.get("status", "HEALTHY")
-        # Attempt to get product name from info, fall back to SKU
+        # Only send actual alerts to Gemini to prevent hallucination
+        if status in ("HEALTHY", "EXCESS"):
+            continue
+            
+        alert_count += 1
+        emoji = status_emoji.get(status, "⚠️")
+        days = info.get("days_remaining", 0)
         name = info.get("product_name", sku)
         lines.append(f"{emoji} {name} — {days} days remaining. {status}.")
-    return "\n".join(lines) if lines else "No inventory data available."
+        
+    if not lines:
+        return "All inventory items are HEALTHY. No alerts."
+    return f"We have {alert_count} items requiring attention:\n" + "\n".join(lines)
 
 
 def _build_orders_summary(orders_draft: list[dict]) -> str:

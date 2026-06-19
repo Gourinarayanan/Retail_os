@@ -155,6 +155,12 @@ async def run_opportunity_agent(state: RetailWiseState) -> RetailWiseState:
 
             # ── Gemini: 2-sentence advice card ────────────────────────────
             try:
+                # NEW: Query the RAG engine for the specific playbook context!
+                from rag.rag_engine import query_rag
+                rag_query = f"What is the retail strategy for {product.name} during {festival_name}?"
+                rag_result = query_rag(rag_query)
+                playbook_context = rag_result.get("answer", "")
+
                 narrative = gemini_service.generate_opportunity_narrative(
                     festival=festival_name,
                     days_away=days_away,
@@ -163,6 +169,7 @@ async def run_opportunity_agent(state: RetailWiseState) -> RetailWiseState:
                     demand_uplift_pct=round((multiplier - 1.0) * 100),
                     extra_revenue_est=round(extra_revenue),
                     extra_profit_est=round(extra_profit),
+                    playbook_context=playbook_context,
                 )
             except Exception as exc:
                 logger.warning(
