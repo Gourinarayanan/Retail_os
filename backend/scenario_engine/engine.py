@@ -11,7 +11,7 @@ from agents.state import RetailWiseState
 from scenario_engine.rules import evaluate_scenarios
 
 
-def run_scenario_engine(state: RetailWiseState) -> RetailWiseState:
+async def run_scenario_engine(state: RetailWiseState) -> RetailWiseState:
     """
     LangGraph node: Scenario Engine.
 

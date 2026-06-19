@@ -96,7 +96,7 @@ def _get_embed_model():
     try:
         from llama_index.embeddings.gemini import GeminiEmbedding
         return GeminiEmbedding(
-            model_name="models/text-embedding-004",
+            model_name="models/embedding-001",
             api_key=_GEMINI_API_KEY,
         )
     except ImportError:

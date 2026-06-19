@@ -110,7 +110,9 @@ async def fetch_festivals(api_key: str, calendar_id: str) -> list[dict]:
         "maxResults": 50,
     }
 
-    url = _GCAL_URL.format(calendar_id=calendar_id)
+    import urllib.parse
+    encoded_id = urllib.parse.quote(calendar_id)
+    url = _GCAL_URL.format(calendar_id=encoded_id)
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
