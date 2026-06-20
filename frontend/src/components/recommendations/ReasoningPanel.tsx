@@ -9,7 +9,7 @@ interface ReasoningPanelProps {
 
 function classifyLine(line: string): 'prophet' | 'scenario' | 'stock' | 'cycle' | 'expiry' | 'default' {
   const l = line.toLowerCase();
-  if (l.includes('prophet') || l.includes('forecast') || l.includes('baseline'))  return 'prophet';
+  if (l.includes('holt-winters') || l.includes('prophet') || l.includes('forecast') || l.includes('baseline'))  return 'prophet';
   if (l.includes('scenario') || l.includes('multiplier') || l.includes('onam')
     || l.includes('hartal') || l.includes('rain') || l.includes('eid')
     || l.includes('festival') || l.includes('christmas'))                          return 'scenario';

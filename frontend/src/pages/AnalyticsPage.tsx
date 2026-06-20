@@ -132,7 +132,7 @@ function DemandForecastTab() {
       <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6">
         <div>
           <h3 className="font-headline-sm text-base font-bold text-on-surface">
-            14-Day Prophet Forecast — {detail?.name ?? '…'}
+            14-Day Holt-Winters Forecast — {detail?.name ?? '…'}
           </h3>
           <p className="font-body-sm text-sm text-on-surface-variant mt-1">
             Baseline vs scenario-adjusted demand · shaded band = confidence interval

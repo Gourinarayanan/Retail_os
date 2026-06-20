@@ -98,7 +98,7 @@ function ForecastCard({ result }: { result: ForecastResult }) {
           {[
             { label: 'Baseline/Day', value: result.baseline_daily.toFixed(1), icon: <TrendingUp className="w-3 h-3" /> },
             { label: 'Multiplier', value: `×${result.multiplier.toFixed(2)}`, icon: <TrendingUp className="w-3 h-3" /> },
-            { label: 'Source Model', value: result.data_source.includes('Prophet') ? 'Prophet' : 'Fallback', icon: <Database className="w-3 h-3" /> },
+            { label: 'Source Model', value: result.data_source.includes('Holt-Winters') ? 'Holt-Winters' : 'Fallback', icon: <Database className="w-3 h-3" /> },
           ].map(({ label, value, icon }) => (
             <div key={label} className="rounded-xl p-3 bg-surface-container-low border border-border-glass text-center flex flex-col items-center justify-center">
               <p className="font-label-xs text-[9px] uppercase tracking-wider text-on-surface-variant flex items-center gap-1">
@@ -157,7 +157,7 @@ export default function ForecastPage() {
         <div>
           <h3 className="font-headline-lg text-on-surface">Demand Forecast</h3>
           <p className="font-body-md text-on-surface-variant mt-1">
-            Prophet 14-day models · <strong className="text-amber-500">{withUplift.length} items</strong> with scenario uplift
+            Holt-Winters 14-day models · <strong className="text-amber-500">{withUplift.length} items</strong> with scenario uplift
           </p>
         </div>
         <button onClick={load} className="p-2 border border-border-glass rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-all shrink-0">

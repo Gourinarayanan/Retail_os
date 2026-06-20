@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 
 const api: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-  timeout: 60_000,   // 60s — Prophet pipeline can be slow on first run
+  timeout: 60_000,   // 60s — Holt-Winters pipeline can be slow on first run
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
