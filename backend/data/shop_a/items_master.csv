@@ -1,0 +1,16 @@
+Item Code,Item Description,Department,Brand,Unit,Pack Size,MRP,Cost Price,Avg Daily Sales,Min Stock Level,Lead Time Days,Shelf Life Days,Order Frequency,Order Day,Demand Events
+MILK-001,Milk 1L Packet,DAIRY,Milma,packet,1,62,54,85,50,1,2,Daily,,"hartal_pre,onam,christmas,rainy_day"
+EGGS-002,Eggs Tray (30),DAIRY,,tray,30,185,160,12,8,1,21,Daily,,"hartal_pre,christmas,easter"
+CURD-003,Curd 500ml,DAIRY,Amul,cup,500,32,26,30,20,1,5,Daily,,"onam,summer"
+RICE-004,Ponni Rice 5kg,STAPLE,Double Horse,bag,5,280,240,18,30,2,9999,Weekly,Monday,"hartal_pre,onam,vishu,eid,ramadan"
+FLOR-005,Wheat Flour 1kg,STAPLE,Aashirvaad,packet,1,48,38,22,40,2,180,Weekly,Monday,"hartal_pre,ramadan,christmas"
+COIL-006,Coconut Oil 1L,STAPLE,Parachute,bottle,1,195,165,9,15,2,9999,Weekly,Monday,"hartal_pre,onam,vishu"
+BNCH-007,Banana Chips 200g,SNACKS,Haldirams,packet,200,45,32,42,50,1,45,Weekly,Thursday,"hartal_pre,onam,vishu,rainy_day"
+MIXT-008,Mixture Snack 500g,SNACKS,Bikaji,packet,500,80,58,18,25,1,90,Weekly,Thursday,"onam,christmas,eid,rainy_day"
+RCHL-009,Red Chilli Powder 200g,SPICE,MDH,packet,200,55,42,14,20,2,9999,Weekly,Wednesday,"ramadan,eid,onam"
+GRMS-010,Garam Masala 50g,SPICE,MDH,packet,50,28,20,8,12,2,9999,Weekly,Wednesday,"ramadan,eid,christmas"
+TEA-011,Tea Powder 250g,BEV,Tata,packet,250,75,60,16,25,2,9999,Weekly,Tuesday,"hartal_pre,rainy_day,onam"
+COFF-012,Bru Coffee 200g,BEV,Bru,jar,200,195,162,5,8,2,9999,Weekly,Tuesday,"christmas,vishu"
+SURF-013,Surf Excel 1kg,CLEANING,Surf Excel,packet,1000,138,115,6,10,3,9999,Monthly,1,"onam,vishu"
+VMDW-014,Vim Dishwash 500ml,CLEANING,Vim,bottle,500,65,52,4,8,3,9999,Monthly,1,onam
+SOAP-015,Dove Soap 100g,PCARE,Dove,piece,100,45,36,8,12,3,9999,Monthly,1,"onam,vishu,christmas"

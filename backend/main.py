@@ -134,10 +134,11 @@ app.add_middleware(
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 
-from routers import agents, analytics, briefing, chat, forecast, insights, inventory, orders, settings, suppliers  # noqa: E402
+from routers import agents, analytics, briefing, chat, etl, forecast, insights, inventory, orders, settings, suppliers  # noqa: E402
 
 app.include_router(agents.router)
 app.include_router(briefing.router)
+app.include_router(etl.router)
 app.include_router(inventory.router)
 app.include_router(orders.router)
 app.include_router(suppliers.router)

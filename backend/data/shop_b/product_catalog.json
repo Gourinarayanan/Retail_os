@@ -1,0 +1,13 @@
+[
+  {"productName": "Ponni Rice 5kg", "barcode": "RICE-B-001", "deptCode": "GRC", "brandName": "Double Horse", "uom": "bag", "retailPrice": "285", "purchaseRate": "242", "avgDailySales": "20", "shelfLifeDays": "9999", "safetyStock": "25"},
+  {"productName": "Wheat Flour 1kg", "barcode": "FLOR-B-001", "deptCode": "GRC", "brandName": "Aashirvaad", "uom": "packet", "retailPrice": "50", "purchaseRate": "39", "avgDailySales": "25", "shelfLifeDays": "180", "safetyStock": "35"},
+  {"productName": "Coconut Oil 1L", "barcode": "COIL-B-001", "deptCode": "GRC", "brandName": "KLF Nirmal", "uom": "bottle", "retailPrice": "198", "purchaseRate": "168", "avgDailySales": "10", "shelfLifeDays": "9999", "safetyStock": "12"},
+  {"productName": "Milk 1L Packet", "barcode": "MILK-B-001", "deptCode": "DRY", "brandName": "Milma", "uom": "packet", "retailPrice": "62", "purchaseRate": "54", "avgDailySales": "120", "shelfLifeDays": "2", "safetyStock": "80"},
+  {"productName": "Eggs Tray 30pcs", "barcode": "EGGS-B-001", "deptCode": "DRY", "brandName": "", "uom": "tray", "retailPrice": "190", "purchaseRate": "162", "avgDailySales": "18", "shelfLifeDays": "21", "safetyStock": "10"},
+  {"productName": "Banana Chips 200g", "barcode": "BNCH-B-001", "deptCode": "SNK", "brandName": "Haldirams", "uom": "packet", "retailPrice": "48", "purchaseRate": "34", "avgDailySales": "55", "shelfLifeDays": "45", "safetyStock": "60"},
+  {"productName": "Lays Chips 50g", "barcode": "LAYS-B-001", "deptCode": "SNK", "brandName": "Lays", "uom": "packet", "retailPrice": "20", "purchaseRate": "14", "avgDailySales": "80", "shelfLifeDays": "60", "safetyStock": "100"},
+  {"productName": "Tea Powder 250g", "barcode": "TEA-B-001", "deptCode": "BEV", "brandName": "Tata", "uom": "packet", "retailPrice": "78", "purchaseRate": "62", "avgDailySales": "22", "shelfLifeDays": "9999", "safetyStock": "30"},
+  {"productName": "Red Chilli Powder 200g", "barcode": "RCHL-B-001", "deptCode": "SPC", "brandName": "MDH", "uom": "packet", "retailPrice": "58", "purchaseRate": "44", "avgDailySales": "18", "shelfLifeDays": "9999", "safetyStock": "20"},
+  {"productName": "Surf Excel 1kg", "barcode": "SURF-B-001", "deptCode": "CLN", "brandName": "Surf Excel", "uom": "packet", "retailPrice": "142", "purchaseRate": "118", "avgDailySales": "8", "shelfLifeDays": "9999", "safetyStock": "12"},
+  {"productName": "Dove Soap 100g", "barcode": "SOAP-B-001", "deptCode": "HPC", "brandName": "Dove", "uom": "piece", "retailPrice": "48", "purchaseRate": "38", "avgDailySales": "12", "shelfLifeDays": "9999", "safetyStock": "15"}
+]

@@ -1,0 +1,98 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# RetailWise AI — Shop ETL Config: Shop A
+# Noufan General Store, Thrissur (CSV-based exports)
+#
+# This file is the ONLY thing you configure when onboarding a new shop.
+# The ETL code remains unchanged.
+# ─────────────────────────────────────────────────────────────────────────────
+
+shop_id: shop_a
+shop_name: "Noufan General Store"
+location: "Thrissur, Kerala"
+
+sources:
+
+  # ── Products Master Catalog ────────────────────────────────────────────────
+  products:
+    file: "shop_a/items_master.csv"
+    format: csv
+    on_conflict: skip          # "skip" or "update"
+    mapping:
+      # retail_os_field : raw_column_name_in_their_file
+      name:             "Item Description"
+      sku:              "Item Code"
+      category:         "Department"
+      brand:            "Brand"
+      unit:             "Unit"
+      unit_size:        "Pack Size"
+      selling_price:    "MRP"
+      cost_price:       "Cost Price"
+      avg_daily_demand: "Avg Daily Sales"
+      min_threshold:    "Min Stock Level"
+      lead_time_days:   "Lead Time Days"
+      shelf_life_days:  "Shelf Life Days"
+      order_cycle:      "Order Frequency"
+      order_day:        "Order Day"
+      demand_events:    "Demand Events"
+    value_maps:
+      # Translate their department codes → Retail OS category values
+      category:
+        "DAIRY":    "dairy"
+        "STAPLE":   "staples"
+        "SNACKS":   "snacks"
+        "SPICE":    "spices"
+        "BEV":      "beverages"
+        "CLEANING": "cleaning"
+        "PCARE":    "personal_care"
+      order_cycle:
+        "Daily":    "daily"
+        "Weekly":   "weekly"
+        "Monthly":  "monthly"
+    defaults:
+      demand_events: ""
+      is_active: true
+      reorder_point_days: 3.0
+
+  # ── Current Inventory / Stock Report ──────────────────────────────────────
+  inventory:
+    file: "shop_a/stock_report.csv"
+    format: csv
+    on_conflict: update        # Always refresh stock from latest report
+    mapping:
+      sku:            "Item Code"
+      quantity:       "Closing Stock"
+      purchase_price: "Last Purchase Cost"
+      expiry_date:    "Expiry Date"
+      batch_number:   "Batch No"
+    date_formats:
+      expiry_date: "%d/%m/%Y"
+    defaults:
+      manufactured_date: null
+
+  # ── Historical Sales Records ───────────────────────────────────────────────
+  sales:
+    file: "shop_a/daily_sales.csv"
+    format: csv
+    mapping:
+      sku:           "Product Code"
+      date:          "Sale Date"
+      quantity_sold: "Qty Sold"
+      revenue:       "Net Amount"
+    date_formats:
+      date: "%d-%m-%Y"
+    defaults:
+      event_tag: "normal"
+
+  # ── Supplier / Vendor List ─────────────────────────────────────────────────
+  suppliers:
+    file: "shop_a/vendor_list.csv"
+    format: csv
+    on_conflict: skip
+    mapping:
+      name:               "Vendor Name"
+      contact_name:       "Contact Person"
+      whatsapp_number:    "Mobile"
+      email:              "Email"
+      region:             "City"
+      supply_categories:  "Category"
+      notes:              "Remarks"

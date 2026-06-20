@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# RetailWise AI — Shop ETL Config: Shop B
+# Metro Supermarket, Kochi (Excel + JSON — completely different structure)
+#
+# Notice: completely different column names from Shop A.
+# The ETL code is IDENTICAL — only this config changes.
+# ─────────────────────────────────────────────────────────────────────────────
+
+shop_id: shop_b
+shop_name: "Metro Supermarket"
+location: "Kochi, Kerala"
+
+sources:
+
+  # ── Products (JSON export from their POS system) ───────────────────────────
+  products:
+    file: "shop_b/product_catalog.json"
+    format: json
+    on_conflict: skip
+    mapping:
+      # Their POS uses camelCase field names
+      name:             "productName"
+      sku:              "barcode"
+      category:         "deptCode"
+      brand:            "brandName"
+      unit:             "uom"
+      selling_price:    "retailPrice"
+      cost_price:       "purchaseRate"
+      avg_daily_demand: "avgDailySales"
+      shelf_life_days:  "shelfLifeDays"
+      min_threshold:    "safetyStock"
+    value_maps:
+      # Their department codes are completely different from Shop A
+      category:
+        "GRC":  "staples"
+        "DRY":  "dairy"
+        "SNK":  "snacks"
+        "BEV":  "beverages"
+        "HPC":  "personal_care"
+        "CLN":  "cleaning"
+        "SPC":  "spices"
+    defaults:
+      order_cycle: "weekly"
+      lead_time_days: 2
+      demand_events: ""
+      is_active: true
+
+  # ── Inventory (Excel export) ───────────────────────────────────────────────
+  inventory:
+    file: "shop_b/current_stock.xlsx"
+    format: excel
+    sheet: "StockLedger"
+    on_conflict: update
+    mapping:
+      sku:            "Barcode"
+      quantity:       "Stock On Hand"
+      purchase_price: "Unit Cost"
+      expiry_date:    "Best Before"
+      batch_number:   "Lot Number"
+    date_formats:
+      expiry_date: "%m/%d/%Y"   # US-style date from their software
+
+  # ── Sales (Excel export) ───────────────────────────────────────────────────
+  sales:
+    file: "shop_b/sales_history.xlsx"
+    format: excel
+    sheet: "Transactions"
+    mapping:
+      sku:           "Barcode"
+      date:          "TxnDate"
+      quantity_sold: "SoldQty"
+      revenue:       "TotalValue"
+    date_formats:
+      date: "%Y-%m-%d"
+    defaults:
+      event_tag: "normal"
+
+  # ── Suppliers (CSV) ────────────────────────────────────────────────────────
+  suppliers:
+    file: "shop_b/suppliers.csv"
+    format: csv
+    on_conflict: skip
+    mapping:
+      name:               "SupplierName"
+      contact_name:       "RepName"
+      whatsapp_number:    "Phone"
+      email:              "EmailId"
+      region:             "District"
+      supply_categories:  "Dept"

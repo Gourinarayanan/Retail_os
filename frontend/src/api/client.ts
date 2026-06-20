@@ -128,11 +128,11 @@ export async function streamBriefing(
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split('\n\n');
+      const parts = buffer.split(/\r?\n\r?\n/);
       buffer = parts.pop() ?? '';
 
       for (const chunk of parts) {
-        const lines = chunk.split('\n');
+        const lines = chunk.split(/\r?\n/);
         let eventType = 'agent_update';
         let dataLine  = '';
 
