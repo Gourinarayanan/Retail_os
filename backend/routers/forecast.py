@@ -1,6 +1,6 @@
 """
 RetailWise AI — Forecast Router
-GET /api/forecast/{sku}    — Prophet 14-day forecast (Recharts JSON)
+GET /api/forecast/{sku}    — Holt-Winters 14-day forecast (Recharts JSON)
 GET /api/forecast/all      — all SKUs summary
 GET /api/context/today     — active scenarios + weather + hartal
 """
@@ -56,7 +56,7 @@ def get_all_forecasts(db: Session = Depends(get_db)):
 @router.get("/api/forecast/{sku}")
 def get_sku_forecast(sku: str, db: Session = Depends(get_db)):
     """
-    14-day Prophet forecast for a single SKU.
+    14-day Holt-Winters forecast for a single SKU.
     Returns Recharts-ready JSON from the latest daily briefing's orders JSON.
     Falls back to avg_daily_demand if no briefing available.
     """
@@ -84,7 +84,7 @@ def get_sku_forecast(sku: str, db: Session = Depends(get_db)):
                         "scenario_adjusted_daily": order.get("scenario_adjusted_daily", product.avg_daily_demand),
                         "multiplier": order.get("multiplier", 1.0),
                         "reasons": order.get("reasons", []),
-                        "data_source": "Prophet (latest briefing)",
+                        "data_source": "Holt-Winters (latest briefing)",
                     }
         except Exception:
             pass
@@ -111,7 +111,7 @@ def get_sku_forecast(sku: str, db: Session = Depends(get_db)):
         "scenario_adjusted_daily": product.avg_daily_demand,
         "multiplier": 1.0,
         "reasons": [],
-        "data_source": "Fallback (avg_daily_demand — run morning briefing for Prophet forecast)",
+        "data_source": "Fallback (avg_daily_demand — run morning briefing for Holt-Winters forecast)",
     }
 
 

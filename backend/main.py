@@ -100,7 +100,7 @@ app = FastAPI(
     title="RetailWise AI",
     description=(
         "AI-powered inventory & demand forecasting system for Kerala supermarkets. "
-        "7-agent LangGraph pipeline with Gemini Flash, Prophet, and real-time SSE."
+        "7-agent LangGraph pipeline with Gemini Flash, Holt-Winters, and real-time SSE."
     ),
     version="1.0.0",
     lifespan=lifespan,

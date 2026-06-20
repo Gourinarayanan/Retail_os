@@ -237,7 +237,7 @@ def _build_ai_reasoning(
 
     # 1. Base forecast line
     lines.append(
-        f"Prophet model forecasts an average of {round(baseline_daily, 1)} "
+        f"Holt-Winters model forecasts an average of {round(baseline_daily, 1)} "
         f"{product.unit}s/day over the next 7 days (based on 90 days of your sales data)."
     )
 

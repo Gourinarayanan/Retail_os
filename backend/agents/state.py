@@ -18,7 +18,7 @@ class RetailWiseState(TypedDict):
     # Per-agent outputs
     context: Dict                    # weather, hartal flags, upcoming festivals
     active_scenarios: List[Dict]     # Evaluated scenario rules with demand impacts
-    forecast: Dict                   # Prophet per-SKU 7+14 day forecast
+    forecast: dict                   # Holt-Winters per-SKU 7+14 day forecast
     inventory_status: Dict           # Per-SKU: stock, days_remaining, alerts
     orders_draft: List[Dict]         # Drafted orders pending owner approval
     supplier_rankings: Dict          # Per category: ranked + scored suppliers

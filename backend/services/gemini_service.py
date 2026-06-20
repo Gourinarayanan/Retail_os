@@ -284,7 +284,7 @@ Good morning {owner_name}. Here is your RetailWise briefing for {run_date}.
 ⚠️ ONE ACTION NEEDED
 [Single most important thing the owner must do today — approve order / address expiry / etc.]
 
-Cite data sources inline: [Prophet] [NewsAPI] [OpenWeather] [Google Calendar]
+Cite data sources inline: [Holt-Winters] [NewsAPI] [OpenWeather] [Google Calendar]
 Total length: under 220 words. No padding. No generic statements.
 IMPORTANT: Use ONLY the numbers provided in the data above. Never invent or estimate figures."""
 
