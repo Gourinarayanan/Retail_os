@@ -322,6 +322,8 @@ class DailyBriefing(Base):
     # JSON: expiry + stockout alerts
     orders_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     # JSON: orders drafted this run
+    forecast_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
+    # JSON: full Holt-Winters forecast for all products
     opportunities_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     # JSON: profit opportunity cards
     created_at: Mapped[datetime] = mapped_column(

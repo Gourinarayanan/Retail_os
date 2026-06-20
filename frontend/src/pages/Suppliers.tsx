@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, RefreshCw, Truck, Star, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import { apiGet } from '../api/client';
+import { useSearch } from '../context/SearchContext';
 
 interface SupplierSummary {
   id:                   number;
@@ -162,9 +163,9 @@ function SupplierScoreCard({ supplier, rank }: { supplier: SupplierSummary; rank
 }
 
 export default function SuppliersPage() {
+  const { searchQuery: search, setSearchQuery: setSearch } = useSearch();
   const [suppliers, setSuppliers] = useState<SupplierSummary[]>([]);
   const [loading,   setLoading]   = useState(true);
-  const [search,    setSearch]    = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);

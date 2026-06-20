@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import type { Order, OrderCycle, OrderStatus } from '../types';
 import { apiGet, apiPost } from '../api/client';
 import OrderCard from '../components/recommendations/OrderCard';
+import { useSearch } from '../context/SearchContext';
 
 const CYCLE_FILTERS: { value: OrderCycle | 'all'; label: string }[] = [
   { value: 'all',       label: 'All Orders'  },
@@ -39,6 +40,8 @@ export default function OrdersPage() {
   const [approveAll, setApproveAll] = useState(false);
   const [cycleFilter, setCycleFilter] = useState<OrderCycle | 'all'>('all');
   const [showHistory, setShowHistory] = useState(false);
+
+  const { searchQuery } = useSearch();
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -78,6 +81,15 @@ export default function OrdersPage() {
 
   const filtered = orders
     .filter(o => cycleFilter === 'all' || o.order_cycle === cycleFilter)
+    .filter(o => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      // Safely access properties as any to avoid strict type errors if some fields are missing
+      const orderAny = o as any;
+      return (orderAny.product_name?.toLowerCase().includes(q) ||
+              orderAny.supplier_name?.toLowerCase().includes(q) ||
+              orderAny.product_sku?.toLowerCase().includes(q));
+    })
     .sort((a, b) => {
       const priority = { emergency: 0, daily: 1, weekly: 2, monthly: 3 };
       return (priority[a.order_cycle] ?? 4) - (priority[b.order_cycle] ?? 4);

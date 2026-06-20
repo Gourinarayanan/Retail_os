@@ -84,18 +84,35 @@ def _run_hw_for_product(
     finally:
         db.close()
 
-    # Need at least 2 data points; prefer 14 for seasonal model
-    if len(records) < 2:
+    # ── Aggregate by Date ─────────────────────────────────────────────────
+    from collections import defaultdict
+    daily_sales = defaultdict(float)
+    for r in records:
+        # SalesRecord.date is a DateTime, so we extract the date part
+        d = r.date.date() if hasattr(r.date, "date") else r.date
+        daily_sales[d] += max(0.0, float(r.quantity_sold))
+        
+    # Need at least 2 distinct days of data
+    if len(daily_sales) < 2:
         logger.warning(
-            "[forecast] %s (%s): insufficient data (%d rows) — using avg_daily_demand fallback.",
+            "[forecast] %s (%s): insufficient data (%d days) — using avg_daily_demand fallback.",
             product_name,
             product_sku,
-            len(records),
+            len(daily_sales),
         )
         return _fallback_forecast(avg_daily_demand, category, active_scenarios)
 
-    # ── Build series ──────────────────────────────────────────────────────
-    series = [max(0.0, float(r.quantity_sold)) for r in records]
+    # ── Build Continuous Series ───────────────────────────────────────────
+    # We must fill in missing days with 0.0 to keep the 7-day seasonality intact!
+    min_date = min(daily_sales.keys())
+    # Max date is yesterday
+    max_date = today - timedelta(days=1)
+    
+    current_date = min_date
+    series = []
+    while current_date <= max_date:
+        series.append(daily_sales.get(current_date, 0.0))
+        current_date += timedelta(days=1)
 
     # ── Fit Holt-Winters (Advanced Grid Search) ─────────────────────────────
     try:

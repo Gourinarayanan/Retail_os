@@ -62,33 +62,34 @@ function ForecastCard({ result }: { result: ForecastResult }) {
       {/* Chart */}
       <div className="h-[200px] mb-6 relative z-10 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={result.recharts_data} margin={{ top: 5, right: 0, bottom: 0, left: -25 }}>
+          <AreaChart data={result.recharts_data} margin={{ top: 15, right: 10, bottom: 0, left: -25 }}>
             <defs>
               <linearGradient id={`g-adj-${result.sku}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={uplift ? "#f59e0b" : "#10b981"} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={uplift ? "#f59e0b" : "#10b981"} stopOpacity={0.02} />
+                <stop offset="0%" stopColor={uplift ? "#f59e0b" : "#10b981"} stopOpacity={0.4} />
+                <stop offset="100%" stopColor={uplift ? "#f59e0b" : "#10b981"} stopOpacity={0.0} />
               </linearGradient>
               <linearGradient id={`g-base-${result.sku}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--border)" strokeOpacity={0.3} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+              tick={{ fontSize: 10, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
               tickFormatter={(v) => new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-              axisLine={false} tickLine={false} dy={10}
+              axisLine={false} tickLine={false} dy={12}
+              minTickGap={20}
             />
-            <YAxis tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} dx={-10} />
+            <YAxis 
+              tick={{ fontSize: 10, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} 
+              axisLine={false} tickLine={false} dx={-10} 
+              domain={['dataMin - (dataMin * 0.1)', 'dataMax + (dataMax * 0.1)']}
+            />
             <Tooltip content={<ForecastTooltip />} cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-            <ReferenceLine x={today} stroke="var(--primary)" strokeOpacity={0.4} strokeDasharray="4 2" label={{ value: 'Today', position: 'insideTopLeft', fontSize: 10, fill: 'var(--primary)', fontWeight: 'bold' }} />
             
-            <Area type="monotone" dataKey="upper" stroke="none" fill="var(--primary)" fillOpacity={0.05} name="Upper Bound" />
-            <Area type="monotone" dataKey="lower" stroke="none" fill="var(--bg-card)" fillOpacity={1} name="Lower Bound" />
-            
-            <Area type="monotone" dataKey="baseline" stroke="#3b82f6" strokeWidth={2} fill={`url(#g-base-${result.sku})`} dot={false} name="Baseline" strokeDasharray="4 4" />
-            <Area type="monotone" dataKey="adjusted" stroke={uplift ? "#f59e0b" : "#10b981"} strokeWidth={2.5} fill={`url(#g-adj-${result.sku})`} dot={false} name="Scenario Adj" activeDot={{ r: 5, strokeWidth: 0, fill: uplift ? "#f59e0b" : "#10b981" }} />
+            <Area type="monotone" dataKey="baseline" stroke="#3b82f6" strokeWidth={2} fill={`url(#g-base-${result.sku})`} dot={false} name="Baseline" strokeDasharray="5 5" />
+            <Area type="monotone" dataKey="adjusted" stroke={uplift ? "#f59e0b" : "#10b981"} strokeWidth={3} fill={`url(#g-adj-${result.sku})`} dot={false} name="Scenario Adj" activeDot={{ r: 6, strokeWidth: 0, fill: uplift ? "#f59e0b" : "#10b981" }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

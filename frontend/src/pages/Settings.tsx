@@ -110,13 +110,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-        <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-        <div className="space-y-1 text-sm text-amber-700 font-medium">
-          <p>These settings are stored in memory for the current session.</p>
-          <p className="text-amber-600/80">To make them permanent across server reboots, update the <code className="bg-amber-500/20 px-1.5 py-0.5 rounded font-mono text-xs">backend/.env</code> file.</p>
-        </div>
-      </div>
+
 
       <div className="glass-panel p-6 rounded-2xl border border-border-glass space-y-8">
         <div className="flex items-center gap-3 border-b border-border-glass pb-4">

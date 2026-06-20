@@ -54,14 +54,26 @@ def _format_briefing(b: DailyBriefing) -> dict:
         except Exception:
             return []
 
+    alerts = _safe_json(b.inventory_alerts_json)
+    if isinstance(alerts, list):
+        for a in alerts:
+            if 'stock_status' not in a and 'alert' in a:
+                a['stock_status'] = a['alert']
+                
+    orders = _safe_json(b.orders_json)
+    if isinstance(orders, list):
+        for o in orders:
+            if 'status' not in o:
+                o['status'] = 'pending_approval'
+
     return {
         "id": b.id,
         "date": b.date.isoformat(),
         "brief_text": b.brief_text,
         "context": _safe_json(b.context_json),
         "scenarios": _safe_json(b.scenarios_json),
-        "inventory_alerts": _safe_json(b.inventory_alerts_json),
-        "orders": _safe_json(b.orders_json),
+        "inventory_alerts": alerts,
+        "orders": orders,
         "opportunities": _safe_json(b.opportunities_json),
         "created_at": b.created_at.isoformat(),
     }

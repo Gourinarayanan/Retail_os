@@ -157,14 +157,13 @@ def generate_json(prompt: str) -> dict:
         return {}
 
 
-def classify_hartal(
+def extract_market_signals(
     headlines: list[str],
     today: date,
     tomorrow: date,
 ) -> dict:
     """
-    Use Gemini Flash to classify Kerala hartal/strike headlines.
-    Implements the exact prompt from spec Section 7 — Agent 2c.
+    Use Gemini Flash to extract Kerala market intelligence from headlines.
 
     Args:
         headlines : list of news headline strings (up to 10)
@@ -172,27 +171,23 @@ def classify_hartal(
         tomorrow  : tomorrow's date
 
     Returns:
-        {
-            "hartal_today":      bool,
-            "hartal_tomorrow":   bool,
-            "hartal_day_after":  bool,
-            "transport_strike":  bool,
-            "supply_disruption": bool,
-            "confidence":        float,
-            "source_headline":   str | None,
-        }
+        dict containing boolean flags for the scenario engine.
     """
     headlines_text = "\n".join(f"{i+1}. {h}" for i, h in enumerate(headlines))
 
-    # Exact prompt from spec Section 7 Agent 2c
     prompt = f"""Today is {today.isoformat()}. Tomorrow is {tomorrow.isoformat()}.
-Read these Kerala news headlines and respond ONLY in valid JSON:
+Read these Kerala news headlines and respond ONLY in valid JSON. Look for any evidence of these events happening soon or actively occurring.
 {{
   "hartal_today": false,
   "hartal_tomorrow": false,
   "hartal_day_after": false,
   "transport_strike": false,
-  "supply_disruption": false,
+  "school_reopening": false,
+  "exam_season": false,
+  "inflation_high": false,
+  "fuel_price_hike": false,
+  "competitor_discount": false,
+  "viral_trend": false,
   "confidence": 0.0,
   "source_headline": null
 }}
@@ -242,6 +237,20 @@ def generate_morning_brief(state: dict) -> str:
     opportunities: list[dict] = state.get("opportunities", [])
     top_opportunity = opportunities[0] if opportunities else None
 
+    # ── RAG Playbook Injection ────────────────────────────────────────
+    try:
+        from rag.rag_engine import query_rag
+        # Determine current conditions to query RAG for the best matching daily policy
+        weather_rain = context.get("weather", {}).get("today", {}).get("rain_mm", 0) > 0
+        festival_str = f" during {top_opportunity['festival']}" if top_opportunity else ""
+        weather_str = " during the rain/monsoon season" if weather_rain else ""
+        
+        rag_query = f"What is the most critical operational focus, policy, and priority for the store today{festival_str}{weather_str}?"
+        playbook_directive = query_rag(rag_query).get("answer", "No specific playbook directive found.")
+    except Exception as e:
+        logger.warning("[gemini] RAG query for morning brief failed: %s", e)
+        playbook_directive = "Ensure shelves are stocked and customers are served."
+
     prompt = f"""You are RetailWise AI, the morning briefing assistant for {business_name}.
 Write the morning brief using ONLY the data provided below. DO NOT add numbers not in the data.
 Sound like a knowledgeable, warm business advisor — not a chatbot.
@@ -263,6 +272,9 @@ LOCATION: {business_location}
 
 === TOP PROFIT OPPORTUNITY ===
 {json.dumps(top_opportunity, indent=2) if top_opportunity else "None today."}
+
+=== RETAIL PLAYBOOK DIRECTIVE ===
+{playbook_directive}
 
 Write EXACTLY in this format:
 
@@ -367,11 +379,31 @@ def chat_with_context(system_prompt: str, messages: list[dict]) -> str:
         role = "model" if msg.get("role") == "assistant" else "user"
         history.append({"role": role, "parts": [msg.get("content", "")]})
 
-    chat = _model.start_chat(history=history)
-
-    last_message = messages[-1].get("content", "") if messages else ""
-    response = chat.send_message(last_message)
-    return response.text
+    try:
+        chat = _gemini_model.start_chat(history=history)
+        last_message = messages[-1].get("content", "") if messages else ""
+        response = chat.send_message(last_message)
+        return response.text
+    except Exception as exc:
+        logger.warning("[gemini] Gemini chat failed: %s", exc)
+        if _groq_client:
+            logger.info("[gemini] 🔄 Falling back to Groq Llama-3 for chat...")
+            try:
+                groq_msgs = [{"role": "system", "content": system_prompt}]
+                for msg in messages:
+                    role = "assistant" if msg.get("role") == "assistant" else "user"
+                    groq_msgs.append({"role": role, "content": msg.get("content", "")})
+                
+                chat_completion = _groq_client.chat.completions.create(
+                    messages=groq_msgs,
+                    model=_GROQ_MODEL_NAME,
+                )
+                return chat_completion.choices[0].message.content or ""
+            except Exception as groq_exc:
+                logger.error("[gemini] Groq chat fallback failed: %s", groq_exc)
+                raise
+        else:
+            raise
 
 
 # ── Compact summary builders (keep prompt under token limit) ──────────────────
@@ -464,3 +496,33 @@ def _build_orders_summary(orders_draft: list[dict]) -> str:
             f"{cycle}: {qty} {unit}s {product} from {supplier} — ₹{total:,}"
         )
     return "\n".join(lines) if lines else "No orders drafted."
+
+def analyze_social_sentiment(posts: list[str]) -> str:
+    """
+    Use Gemini Flash to analyze the overall sentiment of a list of social media posts.
+    Returns 'positive', 'neutral', or 'negative'.
+    """
+    if not posts:
+        return "neutral"
+
+    posts_text = "\n".join(f"{i+1}. {p}" for i, p in enumerate(posts))
+
+    prompt = f"""Read these top social media posts from the local community today.
+Determine the overall consumer sentiment as a single word.
+You must respond with ONLY ONE of these three exact words:
+positive
+neutral
+negative
+
+Posts:
+{posts_text}"""
+
+    try:
+        response = _gemini_model.generate_content(prompt)
+        text = response.text.strip().lower()
+        if text in ("positive", "neutral", "negative"):
+            return text
+        return "neutral"
+    except Exception as exc:
+        logger.warning("[gemini] Sentiment analysis failed: %s", exc)
+        return "neutral"

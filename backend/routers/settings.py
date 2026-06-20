@@ -71,13 +71,26 @@ def get_settings():
 @router.patch("", response_model=SettingsOut)
 def update_settings(body: SettingsUpdate):
     """
-    Update mutable settings at runtime. Changes are in-process only —
-    they survive until the server restarts. To persist, edit the .env file.
+    Update settings and persist them to the .env file.
     """
-    if body.business_name      is not None: _MUTABLE["BUSINESS_NAME"]      = body.business_name
-    if body.business_location  is not None: _MUTABLE["BUSINESS_LOCATION"]  = body.business_location
-    if body.weather_city       is not None: _MUTABLE["WEATHER_CITY"]       = body.weather_city
-    if body.morning_brief_time is not None: _MUTABLE["MORNING_BRIEF_TIME"] = body.morning_brief_time
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+    import dotenv
+    
+    if body.business_name is not None:
+        _MUTABLE["BUSINESS_NAME"] = body.business_name
+        dotenv.set_key(env_path, "BUSINESS_NAME", body.business_name)
+        
+    if body.business_location is not None:
+        _MUTABLE["BUSINESS_LOCATION"] = body.business_location
+        dotenv.set_key(env_path, "BUSINESS_LOCATION", body.business_location)
+        
+    if body.weather_city is not None:
+        _MUTABLE["WEATHER_CITY"] = body.weather_city
+        dotenv.set_key(env_path, "WEATHER_CITY", body.weather_city)
+        
+    if body.morning_brief_time is not None:
+        _MUTABLE["MORNING_BRIEF_TIME"] = body.morning_brief_time
+        dotenv.set_key(env_path, "MORNING_BRIEF_TIME", body.morning_brief_time)
 
-    logger.info("[settings] Updated: %s", {k: v for k, v in body.model_dump().items() if v is not None})
+    logger.info("[settings] Persisted to .env: %s", {k: v for k, v in body.model_dump().items() if v is not None})
     return get_settings()

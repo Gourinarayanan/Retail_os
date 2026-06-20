@@ -19,7 +19,8 @@ from sqlalchemy.orm import Session
 
 from agents.state import RetailWiseState
 from database.db import SessionLocal
-from database.models import Supplier, SupplierDelivery, SupplierPrice
+from database.models import Product, Supplier, SupplierDelivery, SupplierPrice
+from rag.rag_engine import query_rag
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +225,9 @@ async def run_supplier_agent(state: RetailWiseState) -> RetailWiseState:
 
         supplier_rankings: dict = {}
         total_savings = 0.0
+        
+        # Cache RAG supplier strategies to avoid repeated queries for the same supplier
+        supplier_strategies_cache: dict[int, str] = {}
 
         for order in orders_draft:
             product_id: int = order["product_id"]
@@ -296,6 +300,30 @@ async def run_supplier_agent(state: RetailWiseState) -> RetailWiseState:
                 )
                 if len(scored) > 1 else 0.0
             )
+            
+            # ── RAG Playbook Injection ────────────────────────────────────────
+            # Query the RAG for the best supplier's negotiation/playbook strategy
+            best_id = best["supplier_id"]
+            if best_id not in supplier_strategies_cache:
+                rag_q = f"What is the specific ordering, credit terms, and negotiation playbook for supplier {best['name']}?"
+                rag_ans = query_rag(rag_q).get("answer", "")
+                
+                if rag_ans:
+                    # Summarize the RAG context with Gemini to keep it short for the UI
+                    from services.gemini_service import generate
+                    summary_prompt = f"Summarize this supplier rule into 1 short sentence starting with 'Playbook: ': {rag_ans[:500]}"
+                    try:
+                        strategy_line = generate(summary_prompt)
+                    except Exception as e:
+                        logger.warning("[supplier] RAG summary failed: %s", e)
+                        strategy_line = f"Playbook: Preferred supplier for {category}."
+                else:
+                    strategy_line = f"Playbook: Standard ordering terms apply for {best['name']}."
+                
+                supplier_strategies_cache[best_id] = strategy_line
+            
+            # Append the RAG playbook strategy to the AI reasoning
+            order["ai_reasoning"] += f"\n\n{supplier_strategies_cache[best_id]}"
 
             total_savings += max(0.0, order.get("saving_vs_second", 0.0))
 

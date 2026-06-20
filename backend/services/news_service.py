@@ -1,8 +1,8 @@
 """
-RetailWise AI — News Service (Hartal Detection)
+RetailWise AI — News Service (Market Intelligence)
 Section 7 — Agent 2c of full_flow.md
 
-Fetches Kerala hartal/bandh/strike headlines from NewsAPI,
+Fetches Kerala market intelligence (hartals, schools, economy) from NewsAPI,
 then passes them to Gemini Flash for JSON classification.
 
 On any error: returns all flags False — never crashes the pipeline.
@@ -23,44 +23,42 @@ _DEFAULT_RESULT = {
     "hartal_tomorrow": False,
     "hartal_day_after": False,
     "transport_strike": False,
-    "supply_disruption": False,
+    "school_reopening": False,
+    "exam_season": False,
+    "inflation_high": False,
+    "fuel_price_hike": False,
+    "competitor_discount": False,
+    "viral_trend": False,
     "confidence": 0.0,
     "source_headline": None,
 }
 
 
-async def fetch_hartal_context(api_key: str, gemini_service) -> dict:
+async def fetch_market_intelligence(api_key: str, gemini_service) -> dict:
     """
-    Fetch Kerala hartal/strike news and classify with Gemini Flash.
+    Fetch Kerala market intelligence news and classify with Gemini Flash.
 
     Args:
         api_key        : NewsAPI key from env
-        gemini_service : injected GeminiService instance (has .classify_hartal())
+        gemini_service : injected GeminiService instance (has .extract_market_signals())
 
     Returns:
-        {
-            "hartal_today":       bool,
-            "hartal_tomorrow":    bool,
-            "hartal_day_after":   bool,
-            "transport_strike":   bool,
-            "supply_disruption":  bool,
-            "confidence":         float,
-            "source_headline":    str | None,
-        }
+        dict containing boolean flags for various market scenarios.
     """
     # ── Guard: no API key ──────────────────────────────────────────────────
     if not api_key:
-        logger.warning("[news] NEWS_API_KEY not set — skipping hartal detection.")
+        logger.warning("[news] NEWS_API_KEY not set — skipping market intelligence.")
         return {**_DEFAULT_RESULT}
 
     today = date.today()
     yesterday = today - timedelta(days=1)
 
     # ── Step 1: Fetch NewsAPI headlines ───────────────────────────────────
+    # Broadened search to capture a wide array of local events
     params = {
-        "q": "hartal Kerala OR bandh Kerala OR strike Kerala",
+        "q": "Kerala AND (hartal OR strike OR bandh OR school OR inflation OR festival OR market OR price OR weather OR traffic)",
         "from": yesterday.isoformat(),
-        "sortBy": "publishedAt",
+        "sortBy": "relevancy",
         "pageSize": 10,
         "language": "en",
         "apiKey": api_key,
@@ -88,7 +86,7 @@ async def fetch_hartal_context(api_key: str, gemini_service) -> dict:
     # ── Step 2: Extract top 10 headlines ──────────────────────────────────
     articles: list[dict] = data.get("articles", [])
     if not articles:
-        logger.info("[news] NewsAPI returned 0 articles — no hartal signals.")
+        logger.info("[news] NewsAPI returned 0 articles — no market signals.")
         return {**_DEFAULT_RESULT}
 
     headlines: list[str] = [
@@ -105,14 +103,14 @@ async def fetch_hartal_context(api_key: str, gemini_service) -> dict:
 
     # ── Step 3: Gemini classification ─────────────────────────────────────
     try:
-        result: dict = await gemini_service.classify_hartal(
+        result: dict = gemini_service.extract_market_signals(
             headlines=headlines,
             today=today,
             tomorrow=today + timedelta(days=1),
         )
     except Exception as exc:
         logger.warning(
-            "[news] Gemini hartal classification failed: %s — defaulting to no hartal.",
+            "[news] Gemini market extraction failed: %s — defaulting to no signals.",
             exc,
         )
         return {**_DEFAULT_RESULT}
@@ -121,13 +119,7 @@ async def fetch_hartal_context(api_key: str, gemini_service) -> dict:
     merged = {**_DEFAULT_RESULT, **result}
 
     # Type-coerce booleans in case Gemini returned strings
-    for bool_key in (
-        "hartal_today",
-        "hartal_tomorrow",
-        "hartal_day_after",
-        "transport_strike",
-        "supply_disruption",
-    ):
+    for bool_key in [k for k in _DEFAULT_RESULT.keys() if k not in ("confidence", "source_headline")]:
         merged[bool_key] = bool(merged.get(bool_key, False))
 
     try:
@@ -136,10 +128,10 @@ async def fetch_hartal_context(api_key: str, gemini_service) -> dict:
         merged["confidence"] = 0.0
 
     logger.info(
-        "[news] Hartal classification: today=%s tomorrow=%s confidence=%.2f source=%s",
-        merged["hartal_today"],
+        "[news] Market extraction: hartal_tomorrow=%s school_reopening=%s inflation_high=%s source=%s",
         merged["hartal_tomorrow"],
-        merged["confidence"],
+        merged["school_reopening"],
+        merged["inflation_high"],
         merged["source_headline"],
     )
 

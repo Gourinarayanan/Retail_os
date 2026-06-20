@@ -75,6 +75,8 @@ function AppLayout() {
   );
 }
 
+import { SearchProvider } from './context/SearchContext';
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -97,23 +99,25 @@ export default function App() {
         }}
       />
 
-      <Routes>
-        <Route element={<RequireAuth />}>
-          <Route element={<AppLayout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/inventory"  element={<InventoryPage />} />
-            <Route path="/orders"     element={<OrdersPage />} />
-            <Route path="/forecast"   element={<ForecastPage />} />
-            <Route path="/suppliers"  element={<SuppliersPage />} />
-            <Route path="/insights"   element={<InsightsPage />} />
-            <Route path="/analytics"  element={<AnalyticsPage />} />
-            <Route path="/chat"       element={<ChatPage />} />
-            <Route path="/settings"   element={<SettingsPage />} />
-            <Route path="*"           element={<Navigate to="/dashboard" replace />} />
+      <SearchProvider>
+        <Routes>
+          <Route element={<RequireAuth />}>
+            <Route element={<AppLayout />}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/inventory"  element={<InventoryPage />} />
+              <Route path="/orders"     element={<OrdersPage />} />
+              <Route path="/forecast"   element={<ForecastPage />} />
+              <Route path="/suppliers"  element={<SuppliersPage />} />
+              <Route path="/insights"   element={<InsightsPage />} />
+              <Route path="/analytics"  element={<AnalyticsPage />} />
+              <Route path="/chat"       element={<ChatPage />} />
+              <Route path="/settings"   element={<SettingsPage />} />
+              <Route path="*"           element={<Navigate to="/dashboard" replace />} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </SearchProvider>
     </BrowserRouter>
   );
 }

@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { apiGet, apiPatch } from '../api/client';
 import toast from 'react-hot-toast';
+import { useSearch } from '../context/SearchContext';
 
 interface ExpiryAlert {
   batch_number: string; days_to_expiry: number; quantity: number;
@@ -140,9 +141,9 @@ function Row({ item }: { item: InventoryRow }) {
 }
 
 export default function InventoryPage() {
+  const { searchQuery: search, setSearchQuery: setSearch } = useSearch();
   const [items, setItems]           = useState<InventoryRow[]>([]);
   const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState<InventoryRow['stock_status'] | 'all'>('all');
   const [alertsOnly, setAlertsOnly] = useState(false);
 

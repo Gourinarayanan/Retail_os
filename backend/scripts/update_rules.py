@@ -1,4 +1,6 @@
-"""
+import os
+
+NEW_RULES_CONTENT = '''"""
 RetailWise AI — Scenario Engine Rules
 Section 7 of full_flow.md (scenario_engine/rules.py)
 
@@ -499,3 +501,9 @@ def get_product_multiplier(
         reasons.append(f"[{scenario['name']}] {reason_text}")
 
     return round(combined_multiplier, 3), reasons
+'''
+
+with open(r"d:\Projects\Retail OS\backend\scenario_engine\rules.py", "w", encoding="utf-8") as f:
+    f.write(NEW_RULES_CONTENT)
+
+print("Updated rules.py successfully!")

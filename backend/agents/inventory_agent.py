@@ -227,6 +227,7 @@ def _build_ai_reasoning(
     days_remaining: float,
     expiry_alerts: list[dict],
     today_weekday: str,
+    playbook_rule: str = "",
 ) -> str:
     """
     Build the full AI reasoning string shown verbatim in the UI ReasoningPanel.
@@ -247,6 +248,9 @@ def _build_ai_reasoning(
             lines.append(f"• {reason}")
     else:
         lines.append("• No active demand scenarios today — baseline demand applies.")
+
+    if playbook_rule:
+        lines.append(f"\n{playbook_rule}")
 
     # 3. Order cycle explanation
     if order_cycle_label == "daily":
@@ -395,6 +399,20 @@ async def run_inventory_agent(state: RetailWiseState) -> RetailWiseState:
         if qty <= 0:
             continue
 
+        # ── RAG Playbook Injection for Emergencies ────────────────────────
+        playbook_rule = ""
+        if cycle_label == "emergency" or alert == "out_of_stock":
+            try:
+                from rag.rag_engine import query_rag
+                rag_q = f"What is the store policy on dealing with Stockouts and Emergency Orders for {product.category}?"
+                rag_ans = query_rag(rag_q).get("answer", "")
+                if rag_ans:
+                    from services.gemini_service import generate
+                    summary_prompt = f"Summarize this inventory rule into 1 short sentence starting with 'Emergency Policy: ': {rag_ans[:500]}"
+                    playbook_rule = generate(summary_prompt)
+            except Exception as e:
+                logger.warning("[inventory] RAG query failed: %s", e)
+
         reasoning = _build_ai_reasoning(
             product=product,
             qty=qty,
@@ -407,6 +425,7 @@ async def run_inventory_agent(state: RetailWiseState) -> RetailWiseState:
             days_remaining=days_rem,
             expiry_alerts=expiry_alerts,
             today_weekday=today_weekday,
+            playbook_rule=playbook_rule,
         )
 
         delivery_date = today + timedelta(days=product.lead_time_days)

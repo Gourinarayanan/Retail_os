@@ -4,7 +4,7 @@ Section 7 — Agent 2 of full_flow.md
 
 Gathers all external signals:
   - OpenWeatherMap (weather + rain flags)
-  - NewsAPI + Gemini (hartal classification)
+  - NewsAPI + Gemini (market intelligence)
   - Google Calendar (upcoming Kerala festivals)
 
 Assembles state["context"] exactly as described in Section 7 Agent 2d.
@@ -20,8 +20,14 @@ from dotenv import load_dotenv
 from agents.state import RetailWiseState
 from services import gemini_service
 from services.calendar_service import fetch_festivals
-from services.news_service import fetch_hartal_context
+from services.news_service import fetch_market_intelligence
 from services.weather_service import fetch_weather
+from services.macro_service import (
+    get_consumer_confidence,
+    get_social_media_sentiment,
+    get_traffic_congestion,
+    get_competitor_pricing
+)
 
 load_dotenv()
 
@@ -64,7 +70,7 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         {
             "agent": "context",
             "status": "started",
-            "summary": "Fetching weather, hartal news, and festival calendar...",
+            "summary": "Fetching weather, market news, and festival calendar...",
             "ts": time(),
         }
     )
@@ -86,28 +92,33 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
     weather_today = weather_data.get("today") or _EMPTY_WEATHER_DAY
     weather_tomorrow = weather_data.get("tomorrow") or _EMPTY_WEATHER_DAY
 
-    # ── Step 2: Hartal detection (NewsAPI + Gemini) ───────────────────────
+    # ── Step 2: Market Intelligence (NewsAPI + Gemini) ────────────────────
     try:
-        hartal_data = await fetch_hartal_context(
+        market_data = await fetch_market_intelligence(
             api_key=_NEWS_API_KEY,
             gemini_service=gemini_service,
         )
         sources.append("NewsAPI")
     except Exception as exc:
-        logger.error("[context_agent] Hartal fetch failed: %s", exc)
-        hartal_data = {
+        logger.error("[context_agent] Market intelligence fetch failed: %s", exc)
+        market_data = {
             "hartal_today": False,
             "hartal_tomorrow": False,
             "hartal_day_after": False,
             "transport_strike": False,
-            "supply_disruption": False,
+            "school_reopening": False,
+            "exam_season": False,
+            "inflation_high": False,
+            "fuel_price_hike": False,
+            "competitor_discount": False,
+            "viral_trend": False,
             "confidence": 0.0,
             "source_headline": None,
         }
 
-    hartal_today: bool = hartal_data.get("hartal_today", False)
-    hartal_tomorrow: bool = hartal_data.get("hartal_tomorrow", False)
-    hartal_day_after: bool = hartal_data.get("hartal_day_after", False)
+    hartal_today: bool = market_data.get("hartal_today", False)
+    hartal_tomorrow: bool = market_data.get("hartal_tomorrow", False)
+    hartal_day_after: bool = market_data.get("hartal_day_after", False)
 
     # Compute hartal_days_away: how many days until the next hartal
     hartal_days_away: int | None = None
@@ -118,10 +129,10 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
     elif hartal_day_after:
         hartal_days_away = 2
 
-    # Build hartal_source string for briefing display
+    # Build market_source string for briefing display
     hartal_source: str | None = None
-    if hartal_data.get("source_headline"):
-        hartal_source = f"NewsAPI: '{hartal_data['source_headline']}'"
+    if market_data.get("source_headline"):
+        hartal_source = f"NewsAPI: '{market_data['source_headline']}'"
     elif hartal_today or hartal_tomorrow:
         hartal_source = "NewsAPI"
 
@@ -136,22 +147,29 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         logger.error("[context_agent] Calendar fetch failed: %s", exc)
         upcoming_festivals = []
 
-    # ── Simulated 15-Pillar Hooks ─────────────────────────────────────────
-    # These mock values represent factors where real-time APIs are not yet integrated.
-    # In a production ERP, these would be fetched via SQL, ERP APIs, or web scraping.
+    # ── Step 4: Live 15-Pillar Macro Factors ──────────────────────────────
+    # We replaced the simulated mock data with live deductions and integrations.
+    consumer_confidence = get_consumer_confidence()
+    sources.append("BSE Sensex (Macro)")
+    
+    social_sentiment = get_social_media_sentiment(gemini_service)
+    sources.append("Reddit (Social)")
+    
+    traffic = get_traffic_congestion(weather_today.get("rain_mm", 0), market_data.get("transport_strike", False))
+    pricing = get_competitor_pricing(market_data.get("inflation_high", False))
+    
     simulated_factors = {
-        "competitor_pricing": "normal",
-        "inflation_rate_percent": 4.5,
-        "supply_chain_delays": False,
-        "traffic_congestion": "moderate",
-        "consumer_confidence": "high",
-        "social_media_sentiment": "positive",
-        "local_events": ["School Reopening in 5 days"],
+        "competitor_pricing": pricing,
+        "supply_chain_delays": market_data.get("transport_strike", False),
+        "traffic_congestion": traffic,
+        "consumer_confidence": consumer_confidence,
+        "social_media_sentiment": social_sentiment,
+        "local_events": [],
         "marketing_campaigns_active": True,
         "shelf_placement_status": "optimized"
     }
 
-    # ── Step 4: Assemble state["context"] per spec Section 7 Agent 2d ────
+    # ── Step 5: Assemble state["context"] per spec Section 7 Agent 2d ────
     state["context"] = {
         "simulated_factors": simulated_factors,
         "weather": {
@@ -163,13 +181,22 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         "hartal_day_after": hartal_day_after,
         "hartal_days_away": hartal_days_away,
         "hartal_source": hartal_source,
-        "transport_strike": hartal_data.get("transport_strike", False),
-        "supply_disruption": hartal_data.get("supply_disruption", False),
+        
+        # New live market intelligence signals injected directly into top-level context
+        "transport_strike": market_data.get("transport_strike", False),
+        "school_reopening": market_data.get("school_reopening", False),
+        "exam_season": market_data.get("exam_season", False),
+        "inflation_high": market_data.get("inflation_high", False),
+        "fuel_price_hike": market_data.get("fuel_price_hike", False),
+        "competitor_discount": market_data.get("competitor_discount", False),
+        "viral_trend": market_data.get("viral_trend", False),
+        
+        "supply_disruption": market_data.get("transport_strike", False) or hartal_tomorrow,
         "upcoming_festivals": upcoming_festivals,
         "sources": sources,
     }
 
-    # ── Step 5: Update top-level sources list ─────────────────────────────
+    # ── Step 6: Update top-level sources list ─────────────────────────────
     for src in sources:
         if src not in state.get("sources", []):
             state.setdefault("sources", []).append(src)
@@ -203,7 +230,7 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         summary_parts.append(f"Festivals: {', '.join(fest_parts)} [Google Calendar].")
 
     if not summary_parts:
-        summary_parts.append("No significant signals — normal day.")
+        summary_parts.append("No critical alerts — normal day.")
 
     summary = " ".join(summary_parts)
 

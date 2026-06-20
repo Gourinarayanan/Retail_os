@@ -72,19 +72,21 @@ def get_sku_forecast(sku: str, db: Session = Depends(get_db)):
 
     if briefing:
         try:
-            orders = json.loads(briefing.orders_json or "[]")
-            for order in orders:
-                if order.get("product_sku") == sku and order.get("recharts_data"):
+            forecast_dict = json.loads(briefing.forecast_json or "{}")
+            # forecast_dict is keyed by product_id as a string e.g. "1"
+            # It contains the forecast result dict.
+            for pid_str, f in forecast_dict.items():
+                if f.get("product_sku") == sku and f.get("recharts_data"):
                     return {
                         "product_id": product.id,
                         "sku": product.sku,
                         "name": product.name,
-                        "recharts_data": order["recharts_data"],
-                        "baseline_daily": order.get("baseline_daily", product.avg_daily_demand),
-                        "scenario_adjusted_daily": order.get("scenario_adjusted_daily", product.avg_daily_demand),
-                        "multiplier": order.get("multiplier", 1.0),
-                        "reasons": order.get("reasons", []),
-                        "data_source": "Holt-Winters (latest briefing)",
+                        "recharts_data": f["recharts_data"],
+                        "baseline_daily": f.get("baseline_daily", product.avg_daily_demand),
+                        "scenario_adjusted_daily": f.get("scenario_adjusted_daily", product.avg_daily_demand),
+                        "multiplier": f.get("multiplier", 1.0),
+                        "reasons": f.get("reasons", []),
+                        "data_source": f.get("data_source", "Holt-Winters (latest briefing)"),
                     }
         except Exception:
             pass

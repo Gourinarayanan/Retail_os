@@ -106,6 +106,7 @@ async def run_briefing_agent(state: RetailWiseState) -> RetailWiseState:
             default=str,
         )
         briefing_row.orders_json = json.dumps(state.get("orders_draft", []), default=str)
+        briefing_row.forecast_json = json.dumps(state.get("forecast", {}), default=str)
         briefing_row.opportunities_json = json.dumps(state.get("opportunities", []), default=str)
 
         if not existing:

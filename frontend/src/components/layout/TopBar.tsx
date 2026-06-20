@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Search, MapPin, Bell, Menu, X,
-  AlertTriangle, CalendarDays, Cloud, CloudLightning, CloudRain, Sun, Wind,
+  AlertTriangle, CalendarDays, Cloud, CloudLightning, CloudRain, Sun, Wind, Package
 } from 'lucide-react';
 import { apiGet } from '../../api/client';
 import type { FestivalEntry, WeatherDay } from '../../types';
+import { useSearch } from '../../context/SearchContext';
 
 const PAGE_LABELS: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -28,6 +29,13 @@ interface ContextResponse {
   };
 }
 
+interface AlertItem {
+  product_id: number;
+  name: string;
+  stock_status: string;
+  days_remaining: number;
+}
+
 function WeatherIcon({ day }: { day: WeatherDay }) {
   const c = day.condition.toLowerCase();
   if (day.rain_heavy || c.includes('thunder')) return <CloudLightning size={14} />;
@@ -45,18 +53,67 @@ interface TopBarProps {
 export default function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) {
   const location = useLocation();
   const [ctx, setCtx] = useState<ContextResponse['context'] | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery, setSearchQuery } = useSearch();
+
+  // Location State
+  const [locationName, setLocationName] = useState(import.meta.env.VITE_LOCATION || 'Palakkad, Kerala');
+
+  // Notifications State
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 1. Fetch Context
     apiGet<ContextResponse>('/context/today')
       .then((data) => setCtx(data.context))
       .catch(() => undefined);
+
+    // 2. Fetch Alerts
+    apiGet<AlertItem[]>('/inventory/alerts')
+      .then((data) => setAlerts(data))
+      .catch(() => undefined);
+
+    // 3. Geolocation
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
+            const data = await res.json();
+            if (data && data.address) {
+              const city = data.address.city || data.address.town || data.address.village || data.address.county;
+              const state = data.address.state;
+              if (city && state) {
+                setLocationName(`${city}, ${state}`.toUpperCase());
+              }
+            }
+          } catch (e) {
+            console.error("Geocoding failed", e);
+          }
+        },
+        (error) => {
+          console.warn("Geolocation denied or failed", error);
+        }
+      );
+    }
+  }, []);
+
+  // Close notifications if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const pageLabel = PAGE_LABELS[location.pathname] ?? 'RetailWise OS';
   const weather = ctx?.weather?.today;
   const festival = ctx?.upcoming_festivals?.[0];
-  const location_name = import.meta.env.VITE_LOCATION || 'Palakkad, Kerala';
 
   return (
     <header className="sticky top-0 w-full z-40 bg-surface-glass backdrop-blur-xl border-b border-border-glass flex items-center justify-between px-6 md:px-8 h-16 text-on-surface">
@@ -125,17 +182,61 @@ export default function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) 
         {/* Location */}
         <div className="hidden sm:flex items-center gap-1.5 text-slate-500 text-xs font-semibold uppercase tracking-wider">
           <MapPin className="w-3.5 h-3.5 text-primary" />
-          <span>{location_name}</span>
+          <span>{locationName}</span>
         </div>
 
         {/* Notifications */}
-        <button
-          id="btn-notifications"
-          className="relative text-slate-400 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
-        >
-          <Bell className="w-[18px] h-[18px]" />
-          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button
+            id="btn-notifications"
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="relative text-slate-400 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50 focus:outline-none"
+          >
+            <Bell className="w-[18px] h-[18px]" />
+            {alerts.length > 0 && (
+              <span className="absolute top-1 right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-white">
+                {alerts.length}
+              </span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown */}
+          {showNotifications && (
+            <div className="absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-border-glass rounded-xl shadow-xl overflow-hidden animate-fade-in z-50">
+              <div className="px-4 py-3 border-b border-border-glass flex justify-between items-center bg-surface-container-low">
+                <h3 className="font-bold text-sm text-on-surface">Inventory Alerts</h3>
+                <span className="text-xs font-medium bg-red-100 text-red-600 px-2 py-0.5 rounded-full">{alerts.length} active</span>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {alerts.length === 0 ? (
+                  <div className="p-6 text-center text-sm text-on-surface-variant font-medium">
+                    No active alerts. All stock levels are healthy!
+                  </div>
+                ) : (
+                  alerts.map((alert) => (
+                    <div key={alert.product_id} className="p-4 border-b border-border-glass last:border-b-0 hover:bg-surface-container-low transition-colors">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-semibold text-sm text-on-surface truncate pr-2">{alert.name}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border ${
+                          alert.stock_status === 'out_of_stock' || alert.stock_status === 'critical' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'
+                        }`}>
+                          {alert.stock_status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-medium">
+                        <Package className="w-3.5 h-3.5" />
+                        {alert.days_remaining <= 0 ? 'Stock depleted' : `${alert.days_remaining} days remaining`}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="p-3 border-t border-border-glass text-center">
+                <a href="/inventory" className="text-xs font-bold text-primary hover:text-indigo-700 transition-colors">View All Inventory</a>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Avatar */}
         <div className="w-8 h-8 rounded-lg border border-slate-200 overflow-hidden cursor-pointer hover:border-indigo-400 hover:scale-105 transition-all shadow-sm bg-indigo-100 flex items-center justify-center">
