@@ -1,211 +1,50 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  FileText, RefreshCw, CheckCircle2, AlertTriangle,
-  ShoppingCart, Lightbulb, ChevronDown, ChevronUp, Sparkles
+  Sparkles, ArrowRight, ShoppingCart, CalendarRange,
+  RefreshCw, AlertTriangle, FileText, CheckCircle2,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import type { Briefing, Order, InventoryItem } from '../../types';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-const ALERT_COLORS: Record<string, { badge: string; dot: string }> = {
-  out_of_stock: { badge: 'badge-red',   dot: 'dot-red'   },
-  critical:     { badge: 'badge-red',   dot: 'dot-red'   },
-  warning:      { badge: 'badge-amber', dot: 'dot-amber' },
-  excess:       { badge: 'badge-gray',  dot: 'dot-gray'  },
-  ok:           { badge: 'badge-green', dot: 'dot-green' },
-};
-
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function BriefText({ text }: { text: string }) {
   const [expanded, setExpanded] = useState(false);
   const lines = text.split('\n').filter(Boolean);
-  const preview = lines.slice(0, 6);
-  const rest    = lines.slice(6);
+  const preview = lines.slice(0, 5);
+  const rest = lines.slice(5);
 
   const renderLine = (line: string, i: number) => {
-    if (line.startsWith('###')) {
-      return (
-        <p key={i} className="text-xs font-bold uppercase tracking-wider mt-3 mb-1" style={{ color: '#93c5fd' }}>
-          {line.replace(/^#+\s*/, '')}
-        </p>
-      );
-    }
-    if (line.startsWith('##')) {
-      return (
-        <p key={i} className="text-sm font-bold mt-4 mb-1.5" style={{ color: 'var(--text-primary)' }}>
-          {line.replace(/^#+\s*/, '')}
-        </p>
-      );
-    }
-    if (line.startsWith('#')) {
-      return (
-        <p key={i} className="text-base font-bold mt-2 mb-2" style={{ color: 'var(--text-primary)' }}>
-          {line.replace(/^#+\s*/, '')}
-        </p>
-      );
-    }
-    if (line.startsWith('- ') || line.startsWith('* ')) {
-      return (
-        <p key={i} className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
-          <span className="mt-1.5 w-1 h-1 rounded-full shrink-0" style={{ background: '#3b82f6' }} />
-          <span>{line.slice(2)}</span>
-        </p>
-      );
-    }
-    if (line.startsWith('**') && line.endsWith('**')) {
-      return (
-        <p key={i} className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-          {line.replace(/\*\*/g, '')}
-        </p>
-      );
-    }
-    return (
-      <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-        {line}
+    if (line.startsWith('##')) return (
+      <p key={i} className="text-sm font-bold text-white mt-3 mb-1">{line.replace(/^#+\s*/, '')}</p>
+    );
+    if (line.startsWith('- ') || line.startsWith('* ')) return (
+      <p key={i} className="flex items-start gap-2 text-xs text-indigo-100">
+        <span className="mt-1.5 w-1 h-1 rounded-full shrink-0 bg-indigo-300" />
+        <span>{line.slice(2)}</span>
       </p>
     );
+    return <p key={i} className="text-xs text-indigo-100 leading-relaxed">{line}</p>;
   };
 
   return (
     <div className="flex flex-col gap-1">
       {preview.map(renderLine)}
-      {expanded && rest.map((line, i) => renderLine(line, i + 6))}
+      {expanded && rest.map((line, i) => renderLine(line, i + 5))}
       {rest.length > 0 && (
         <button
-          onClick={() => setExpanded((e) => !e)}
-          className="flex items-center gap-1 text-xs mt-2 self-start"
-          style={{ color: '#60a5fa' }}
+          onClick={() => setExpanded(e => !e)}
+          className="flex items-center gap-1 text-xs mt-1 self-start text-indigo-200 hover:text-white transition-colors"
         >
-          {expanded
-            ? <><ChevronUp size={12} /> Show less</>
-            : <><ChevronDown size={12} /> Read full briefing ({rest.length} more lines)</>
-          }
+          {expanded ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Read more ({rest.length} lines)</>}
         </button>
       )}
     </div>
   );
 }
 
-function AlertsStrip({ alerts }: { alerts: InventoryItem[] }) {
-  if (!alerts?.length) return null;
-  const sorted = [...alerts].sort((a, b) => {
-    const order: Record<string, number> = { out_of_stock: 0, critical: 1, warning: 2, excess: 3, ok: 4 };
-    return (order[a.stock_status] ?? 5) - (order[b.stock_status] ?? 5);
-  });
-
-  function fmtDays(d: number | null | undefined): string {
-    if (d == null || !isFinite(d) || d >= 999) return '∞';
-    return `${d.toFixed(1)}d`;
-  }
-
-  return (
-    <div>
-      <p className="section-title flex items-center gap-1.5">
-        <AlertTriangle size={11} /> Inventory Alerts ({alerts.length})
-      </p>
-      <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto scroll-panel">
-        {sorted.map((item) => {
-          const status = item.stock_status ?? 'ok';
-          const colors = ALERT_COLORS[status] ?? ALERT_COLORS.ok;
-          return (
-            <div
-              key={item.product_id}
-              className="flex items-center justify-between text-xs px-3 py-2 rounded-lg"
-              style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
-            >
-              <div className="flex items-center gap-2">
-                <span className={colors.dot} />
-                <span style={{ color: 'var(--text-primary)' }}>{item.name}</span>
-                <span className="mono" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span style={{ color: 'var(--text-secondary)' }}>
-                  {fmtDays(item.days_remaining)} remaining
-                </span>
-                <span className={colors.badge}>{status.replace('_', ' ')}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function PendingOrdersStrip({ orders }: { orders: Order[] }) {
-  if (!orders.length) return null;
-  const pending = orders.filter((o) => o.status === 'pending_approval');
-  if (!pending.length) return null;
-
-  return (
-    <div>
-      <p className="section-title flex items-center gap-1.5">
-        <ShoppingCart size={11} /> Pending Orders ({pending.length})
-      </p>
-      <div className="flex flex-col gap-1.5">
-        {pending.slice(0, 4).map((o) => (
-          <div
-            key={o.id}
-            className="flex items-center justify-between text-xs px-3 py-2 rounded-lg"
-            style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="badge-amber text-[10px]">{o.order_cycle}</span>
-              <span style={{ color: 'var(--text-primary)' }}>{o.product_name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="mono" style={{ color: 'var(--text-secondary)' }}>
-                {Math.round(o.final_qty)} {o.unit}s
-              </span>
-              <span className="mono font-semibold" style={{ color: '#6ee7b7' }}>
-                ₹{o.total_cost.toLocaleString()}
-              </span>
-            </div>
-          </div>
-        ))}
-        {pending.length > 4 && (
-          <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-            +{pending.length - 4} more orders → go to Orders tab
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ── Stat Bar ──────────────────────────────────────────────────────────────────
-
-function StatBar({ briefing }: { briefing: Briefing }) {
-  const alerts  = briefing.inventory_alerts ?? [];
-  const orders  = briefing.orders ?? [];
-  const opps    = briefing.opportunities ?? [];
-  const critical = alerts.filter((a) => a.stock_status === 'critical' || a.stock_status === 'out_of_stock').length;
-  const pending  = orders.filter((o) => o.status === 'pending_approval').length;
-  const totalCost = orders.reduce((s, o) => s + (o.total_cost || 0), 0);
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-      {[
-        { label: 'Critical Alerts', value: critical, color: critical > 0 ? '#f43f5e' : '#6ee7b7', badge: critical > 0 ? 'badge-red' : 'badge-green' },
-        { label: 'Pending Orders',  value: pending,  color: '#fcd34d', badge: 'badge-amber' },
-        { label: 'Order Value',     value: `₹${Math.round(totalCost).toLocaleString()}`, color: '#6ee7b7', badge: 'badge-green' },
-        { label: 'Opportunities',   value: opps.length, color: '#c4b5fd', badge: 'badge-violet' },
-      ].map(({ label, value, color, badge }) => (
-        <div
-          key={label}
-          className="rounded-lg px-3 py-2.5 flex flex-col gap-0.5"
-          style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
-        >
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{label}</p>
-          <p className="text-xl font-bold mono" style={{ color }}>{value}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Main Component ────────────────────────────────────────────────────────────
+// ── Main Component ─────────────────────────────────────────────────────────────
 
 interface MorningBriefCardProps {
   briefing:  Briefing | null;
@@ -214,99 +53,110 @@ interface MorningBriefCardProps {
 }
 
 export default function MorningBriefCard({ briefing, loading, onRefresh }: MorningBriefCardProps) {
+  const navigate = useNavigate();
+
+  const alerts = briefing?.inventory_alerts ?? [];
+  const orders = briefing?.orders ?? [];
+  const outOfStock = alerts.filter(a => a.stock_status === 'out_of_stock').length;
+  const criticalCount = alerts.filter(a => a.stock_status === 'critical' || a.stock_status === 'out_of_stock').length;
+  const nearExpiry = alerts.filter(a => a.days_remaining != null && a.days_remaining <= 7).length;
+  const pendingOrders = orders.filter(o => o.status === 'pending_approval').length;
+
   if (loading) {
     return (
-      <div className="card flex flex-col gap-4">
-        <div className="skeleton h-5 w-48 rounded" />
-        <div className="skeleton h-3 w-full rounded" />
-        <div className="skeleton h-3 w-4/5 rounded" />
-        <div className="skeleton h-3 w-3/4 rounded" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-          {[0,1,2,3].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}
-        </div>
-      </div>
-    );
-  }
-
-  if (!briefing) {
-    return (
-      <div
-        className="card flex flex-col items-center justify-center gap-3 py-10"
-        style={{ borderStyle: 'dashed' }}
-      >
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-xl"
-          style={{ background: 'rgba(139,92,246,0.1)' }}
-        >
-          <Sparkles size={22} style={{ color: '#c4b5fd' }} />
-        </div>
-        <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-          No briefing for today
-        </p>
-        <p className="text-xs text-center max-w-xs" style={{ color: 'var(--text-muted)' }}>
-          Click <strong>Run Briefing</strong> above to generate your AI morning report
-        </p>
+      <div className="bg-indigo-600 rounded-2xl p-6 border border-indigo-700 animate-pulse">
+        <div className="h-4 bg-indigo-500 rounded w-32 mb-3" />
+        <div className="h-6 bg-indigo-500 rounded w-64 mb-2" />
+        <div className="h-3 bg-indigo-500 rounded w-full mb-1" />
+        <div className="h-3 bg-indigo-500 rounded w-4/5" />
       </div>
     );
   }
 
   return (
-    <div className="card flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0 mt-0.5"
-            style={{ background: 'rgba(139,92,246,0.15)' }}
+    <div className="bg-indigo-600 rounded-2xl p-6 text-white shadow-md border border-indigo-700 relative overflow-hidden">
+      {/* Decorative glow */}
+      <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-40 select-none pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div className="space-y-3.5 max-w-2xl">
+          <div className="flex items-center gap-2">
+            <span className="p-1 px-2 rounded bg-indigo-500 text-indigo-100 border border-indigo-400/40 text-[10px] font-bold tracking-widest uppercase">
+              Daily Pulse
+            </span>
+            <span className="text-indigo-200 text-xs font-medium">
+              {new Date().toLocaleDateString('en-IN', { weekday: 'long' })} Dashboard Brief
+            </span>
+          </div>
+
+          <h2 className="text-2xl font-light italic tracking-tight text-white leading-tight">
+            Good Morning, Operations.
+          </h2>
+
+          {briefing ? (
+            <BriefText text={briefing.brief_text} />
+          ) : (
+            <p className="text-indigo-100 text-sm leading-relaxed">
+              Supply networks active. Run the AI briefing pipeline to generate today's analysis and purchase recommendations.
+            </p>
+          )}
+
+          {/* Tag pills */}
+          <div className="flex flex-wrap gap-2.5 pt-2">
+            {outOfStock > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 border border-red-400/30 text-[11px] font-semibold text-red-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                {outOfStock} Out of Stock
+              </span>
+            )}
+            {nearExpiry > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-[11px] font-semibold text-amber-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                {nearExpiry} Near Expiry
+              </span>
+            )}
+            {pendingOrders > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-400/20 border border-indigo-300/30 text-[11px] font-semibold text-indigo-100">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-300" />
+                {pendingOrders} Pending Orders
+              </span>
+            )}
+            {criticalCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-400/30 text-[11px] font-semibold text-orange-200">
+                <AlertTriangle size={11} />
+                {criticalCount} Critical Alerts
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 min-w-[220px]">
+          <button
+            id="btn-goto-recommendations"
+            onClick={() => navigate('/orders')}
+            className="flex-1 flex items-center justify-between gap-3 bg-white hover:bg-slate-50 text-indigo-700 py-2.5 px-4 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-200 shadow-sm cursor-pointer"
           >
-            <FileText size={16} style={{ color: '#c4b5fd' }} />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-              Morning Brief
-            </h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <CheckCircle2 size={11} style={{ color: '#10b981' }} />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {new Date(briefing.date).toLocaleDateString('en-IN', {
-                  weekday: 'long', day: 'numeric', month: 'long'
-                })}
-              </p>
+            <div className="flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4 text-indigo-600" />
+              <span>Restock Terminal</span>
             </div>
-          </div>
+            <ArrowRight className="w-4 h-4 text-indigo-600" />
+          </button>
+
+          <button
+            id="btn-refresh-briefing"
+            onClick={onRefresh}
+            className="flex-1 flex items-center justify-between gap-3 bg-indigo-500 text-white hover:bg-indigo-400 border border-indigo-400/40 py-2.5 px-4 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 text-indigo-200" />
+              <span>Refresh Brief</span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-indigo-200" />
+          </button>
         </div>
-        <button
-          id="btn-refresh-briefing"
-          onClick={onRefresh}
-          className="btn-ghost text-xs py-1.5"
-          title="Re-fetch briefing"
-        >
-          <RefreshCw size={12} />
-        </button>
       </div>
-
-      {/* Stat bar */}
-      <StatBar briefing={briefing} />
-
-      {/* AI-generated text */}
-      <div
-        className="rounded-xl px-4 py-4"
-        style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}
-      >
-        <div className="flex items-center gap-1.5 mb-3">
-          <Sparkles size={12} style={{ color: '#c4b5fd' }} />
-          <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#c4b5fd' }}>
-            Gemini Analysis
-          </span>
-        </div>
-        <BriefText text={briefing.brief_text} />
-      </div>
-
-      {/* Inventory alerts */}
-      <AlertsStrip alerts={briefing.inventory_alerts ?? []} />
-
-      {/* Pending orders */}
-      <PendingOrdersStrip orders={briefing.orders ?? []} />
     </div>
   );
 }

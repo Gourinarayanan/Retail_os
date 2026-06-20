@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
@@ -6,22 +6,22 @@ import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const InventoryPage = lazy(() => import('./pages/Inventory'));
-const OrdersPage = lazy(() => import('./pages/OrdersPage'));
-const ForecastPage = lazy(() => import('./pages/ForecastPage'));
-const SuppliersPage = lazy(() => import('./pages/Suppliers'));
-const InsightsPage = lazy(() => import('./pages/InsightsPage'));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
-const ChatPage = lazy(() => import('./pages/ChatPage'));
-const SettingsPage = lazy(() => import('./pages/Settings'));
+const InventoryPage  = lazy(() => import('./pages/Inventory'));
+const OrdersPage     = lazy(() => import('./pages/OrdersPage'));
+const ForecastPage   = lazy(() => import('./pages/ForecastPage'));
+const SuppliersPage  = lazy(() => import('./pages/Suppliers'));
+const InsightsPage   = lazy(() => import('./pages/InsightsPage'));
+const AnalyticsPage  = lazy(() => import('./pages/AnalyticsPage'));
+const ChatPage       = lazy(() => import('./pages/ChatPage'));
+const SettingsPage   = lazy(() => import('./pages/Settings'));
 
 function PageLoader() {
   return (
     <div className="flex min-h-[420px] items-center justify-center">
-      <div className="card flex items-center gap-3 px-5 py-4">
-        <Loader2 size={18} className="animate-spin" style={{ color: 'var(--accent-emerald)' }} />
-        <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
-          Preparing workspace
+      <div className="glass-panel flex items-center gap-3 px-5 py-4 rounded-xl">
+        <Loader2 size={18} className="animate-spin text-primary" />
+        <span className="text-sm font-semibold text-on-surface-variant">
+          Preparing workspace...
         </span>
       </div>
     </div>
@@ -37,12 +37,35 @@ function RequireAuth() {
 }
 
 function AppLayout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <div className="app-main">
-        <TopBar />
-        <main id="main-content" className="app-content scroll-panel">
+    <div className="font-sans min-h-screen flex bg-background-obsidian text-on-surface select-none relative">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block shrink-0">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="relative animate-slide-right-mobile">
+            <Sidebar />
+          </div>
+        </div>
+      )}
+
+      {/* Main canvas */}
+      <div className="flex-1 min-w-0 md:ml-64 flex flex-col min-h-screen">
+        <TopBar
+          onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          isMobileMenuOpen={isMobileMenuOpen}
+        />
+        <main id="main-content" className="flex-1 p-6 md:p-8 overflow-y-auto pb-12">
           <Suspense fallback={<PageLoader />}>
             <Outlet />
           </Suspense>
@@ -61,16 +84,16 @@ export default function App() {
           duration: 4200,
           style: {
             background: '#ffffff',
-            color: '#10231f',
-            border: '1px solid #dbe7df',
-            borderRadius: '8px',
-            boxShadow: '0 18px 55px rgba(16, 35, 31, 0.14)',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 10px 30px rgba(15,23,42,0.08)',
             fontSize: '13px',
             fontWeight: 600,
             maxWidth: '420px',
           },
-          success: { iconTheme: { primary: '#0f9f6e', secondary: '#ffffff' } },
-          error: { iconTheme: { primary: '#e11d48', secondary: '#ffffff' } },
+          success: { iconTheme: { primary: '#10b981', secondary: '#ffffff' } },
+          error:   { iconTheme: { primary: '#ef4444', secondary: '#ffffff' } },
         }}
       />
 
@@ -79,15 +102,15 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/forecast" element={<ForecastPage />} />
-            <Route path="/suppliers" element={<SuppliersPage />} />
-            <Route path="/insights" element={<InsightsPage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/inventory"  element={<InventoryPage />} />
+            <Route path="/orders"     element={<OrdersPage />} />
+            <Route path="/forecast"   element={<ForecastPage />} />
+            <Route path="/suppliers"  element={<SuppliersPage />} />
+            <Route path="/insights"   element={<InsightsPage />} />
+            <Route path="/analytics"  element={<AnalyticsPage />} />
+            <Route path="/chat"       element={<ChatPage />} />
+            <Route path="/settings"   element={<SettingsPage />} />
+            <Route path="*"           element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
       </Routes>

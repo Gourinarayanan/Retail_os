@@ -1,12 +1,13 @@
 import React from 'react';
+import { RefreshCcw, PencilLine } from 'lucide-react';
 
 interface EditableQuantityInputProps {
   orderId:           number;
-  value:             number;         // current final_qty
-  aiSuggestion:      number;         // ai_recommended_qty (read-only hint)
+  value:             number;
+  aiSuggestion:      number;
   unit:              string;
   ownerModified:     boolean;
-  onChange:          (newQty: number) => void;  // called on every change (debounced by parent)
+  onChange:          (newQty: number) => void;
   disabled?:         boolean;
 }
 
@@ -22,23 +23,18 @@ export default function EditableQuantityInput({
   const isDifferent = Math.abs(value - aiSuggestion) > 0.01;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* Label row */}
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between px-1">
+        <span className="font-label-xs text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">
           Final Quantity
         </span>
         {ownerModified && (
-          <span
-            className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-            style={{ background: 'rgba(245,158,11,0.12)', color: '#fcd34d', border: '1px solid rgba(245,158,11,0.2)' }}
-          >
-            ✏ Owner-edited
+          <span className="font-label-xs text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 flex items-center gap-1 font-bold">
+            <PencilLine className="w-2.5 h-2.5" /> Edited
           </span>
         )}
       </div>
 
-      {/* Input */}
       <div className="relative flex items-center">
         <input
           id={`order-qty-${orderId}`}
@@ -51,43 +47,30 @@ export default function EditableQuantityInput({
             const raw = parseFloat(e.target.value);
             if (!isNaN(raw) && raw >= 0) onChange(raw);
           }}
-          className="input pr-12 font-semibold text-base mono"
-          style={{
-            borderColor: isDifferent ? 'rgba(245,158,11,0.5)' : undefined,
-            color: isDifferent ? '#fcd34d' : 'var(--text-primary)',
-          }}
+          className={`nexus-input w-full pr-12 pl-4 py-2 rounded-xl font-bold font-mono text-lg transition-colors ${
+            isDifferent ? 'text-amber-600 border-amber-300 focus:border-amber-400 bg-amber-50/30' : 'text-on-surface'
+          }`}
           aria-label={`Final quantity for order ${orderId}`}
         />
-        <span
-          className="absolute right-3 text-xs"
-          style={{ color: 'var(--text-muted)' }}
-        >
+        <span className="absolute right-4 text-xs font-semibold text-on-surface-variant/60 pointer-events-none">
           {unit}s
         </span>
       </div>
 
-      {/* AI suggestion hint — always visible, greyed */}
-      <div className="flex items-center gap-1.5">
-        <span
-          className="text-[10px]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          🤖 AI suggested:
-        </span>
-        <span
-          className="text-[10px] mono font-medium"
-          style={{ color: isDifferent ? 'rgba(245,158,11,0.6)' : 'var(--text-muted)' }}
-        >
-          {aiSuggestion} {unit}s
-        </span>
+      <div className="flex items-center justify-between px-1 h-5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-on-surface-variant">🤖 AI suggested:</span>
+          <span className={`text-[10.5px] font-mono font-bold ${isDifferent ? 'text-amber-500' : 'text-on-surface-variant'}`}>
+            {aiSuggestion} {unit}s
+          </span>
+        </div>
         {isDifferent && (
           <button
             onClick={() => onChange(aiSuggestion)}
-            className="text-[10px] ml-1"
-            style={{ color: '#60a5fa' }}
+            className="flex items-center gap-1 text-[10px] text-primary hover:text-indigo-700 font-semibold transition-colors"
             title="Reset to AI suggestion"
           >
-            ↺ Reset
+            <RefreshCcw className="w-3 h-3" /> Reset
           </button>
         )}
       </div>

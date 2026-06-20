@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, ChevronDown } from 'lucide-react';
+import { RefreshCw, ChevronDown, BarChart2, TrendingUp, AlertTriangle, Package, Truck, Layers } from 'lucide-react';
 import {
   ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -13,8 +13,6 @@ import type {
   ForecastDay,
 } from '../types';
 import { apiGet } from '../api/client';
-
-// ── Types for forecast list endpoint ─────────────────────────────────────────
 
 interface ForecastSummary {
   product_id:       number;
@@ -36,35 +34,33 @@ interface ForecastDetail {
   data_source:             string;
 }
 
-// ── Colour helpers ────────────────────────────────────────────────────────────
-
 const CAT_COLORS: Record<string, string> = {
-  dairy:         '#60a5fa',
-  staples:       '#34d399',
-  snacks:        '#fbbf24',
-  beverages:     '#f87171',
-  spices:        '#c084fc',
-  cleaning:      '#38bdf8',
-  personal_care: '#fb923c',
+  dairy:         '#3b82f6',
+  staples:       '#10b981',
+  snacks:        '#f59e0b',
+  beverages:     '#ef4444',
+  spices:        '#8b5cf6',
+  cleaning:      '#0ea5e9',
+  personal_care: '#f97316',
 };
-const fallback = (i: number) => ['#60a5fa','#34d399','#fbbf24','#f87171','#c084fc','#38bdf8'][i % 6];
+const fallback = (i: number) => ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#0ea5e9'][i % 6];
 
-function reliabilityColor(v: number) {
-  return v >= 90 ? '#34d399' : v >= 75 ? '#fbbf24' : '#f87171';
+function reliabilityColorClass(v: number) {
+  return v >= 90 ? 'text-emerald-500' : v >= 75 ? 'text-amber-500' : 'text-error';
 }
-
-// ── Shared custom tooltip ─────────────────────────────────────────────────────
+function reliabilityColorHex(v: number) {
+  return v >= 90 ? '#10b981' : v >= 75 ? '#f59e0b' : '#ef4444';
+}
 
 function Tip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl px-3 py-2 text-xs flex flex-col gap-1"
-      style={{ background: '#0d1526', border: '1px solid var(--border)', minWidth: 140 }}>
-      <p className="font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{label}</p>
+    <div className="rounded-xl px-4 py-3 text-xs flex flex-col gap-2 bg-surface-container-high border border-border-glass shadow-lg min-w-[160px]">
+      <p className="font-semibold text-on-surface border-b border-border-glass/60 pb-1">{label}</p>
       {payload.map((p: any) => (
-        <div key={p.name} className="flex justify-between gap-6">
-          <span style={{ color: p.color || p.stroke || '#94a3b8' }}>{p.name}</span>
-          <span className="mono font-bold" style={{ color: 'var(--text-primary)' }}>
+        <div key={p.name} className="flex justify-between gap-6 items-center">
+          <span className="font-medium" style={{ color: p.color || p.stroke || '#94a3b8' }}>{p.name}</span>
+          <span className="font-mono font-bold text-on-surface">
             {typeof p.value === 'number'
               ? (p.name?.includes('%') || p.name?.toLowerCase().includes('rate')
                   ? `${p.value.toFixed(1)}%`
@@ -77,8 +73,6 @@ function Tip({ active, payload, label }: any) {
   );
 }
 
-// ── Tab 1: Demand Forecast ────────────────────────────────────────────────────
-
 function DemandForecastTab() {
   const [skus,      setSkus]      = useState<ForecastSummary[]>([]);
   const [selected,  setSelected]  = useState<string>('');
@@ -86,18 +80,13 @@ function DemandForecastTab() {
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // GET /api/forecast/all → ForecastSummary[]
   useEffect(() => {
     apiGet<ForecastSummary[]>('/forecast/all')
-      .then(data => {
-        setSkus(data);
-        if (data.length > 0) setSelected(data[0].sku);
-      })
+      .then(data => { setSkus(data); if (data.length > 0) setSelected(data[0].sku); })
       .catch(() => {})
       .finally(() => setLoadingList(false));
   }, []);
 
-  // GET /api/forecast/{sku} → ForecastDetail
   useEffect(() => {
     if (!selected) return;
     setLoadingDetail(true);
@@ -110,105 +99,91 @@ function DemandForecastTab() {
   const tickEvery = Math.max(1, Math.ceil((detail?.recharts_data.length ?? 14) / 7));
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* SKU selector */}
-      <div className="flex items-center gap-4 flex-wrap">
+    <div className="flex flex-col gap-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="relative">
           <select
             id="forecast-sku-select"
-            className="input pr-8 text-sm appearance-none"
+            className="nexus-input pl-4 pr-10 py-2.5 rounded-lg text-sm appearance-none min-w-[240px] font-medium"
             value={selected}
             onChange={e => setSelected(e.target.value)}
             disabled={loadingList}
           >
-            {skus.map(s => (
-              <option key={s.sku} value={s.sku}>{s.name} ({s.sku})</option>
-            ))}
+            {skus.map(s => <option key={s.sku} value={s.sku}>{s.name} ({s.sku})</option>)}
           </select>
-          <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-            style={{ color: 'var(--text-muted)' }} />
+          <ChevronDown className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant" />
         </div>
         {detail && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="badge-blue text-[10px]">
+            <span className="font-label-xs text-[10px] px-2.5 py-1 rounded-md bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider font-bold">
               Baseline {detail.baseline_daily.toFixed(1)}/day
             </span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-              detail.multiplier > 1.1 ? 'badge-green' : detail.multiplier < 0.9 ? 'badge-red' : 'badge-gray'
+            <span className={`font-label-xs text-[10px] px-2.5 py-1 rounded-md border uppercase tracking-wider font-bold ${
+              detail.multiplier > 1.1 ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+              detail.multiplier < 0.9 ? 'bg-error/10 text-error border-error/20' :
+              'bg-surface-container-high text-on-surface-variant border-border-glass'
             }`}>
               ×{detail.multiplier.toFixed(2)} scenario
-            </span>
-            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              {detail.data_source}
             </span>
           </div>
         )}
       </div>
 
-      {/* Chart */}
-      <div className="card flex flex-col gap-4">
+      <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6">
         <div>
-          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+          <h3 className="font-headline-sm text-base font-bold text-on-surface">
             14-Day Prophet Forecast — {detail?.name ?? '…'}
           </h3>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          <p className="font-body-sm text-sm text-on-surface-variant mt-1">
             Baseline vs scenario-adjusted demand · shaded band = confidence interval
           </p>
         </div>
         {loadingDetail || !detail ? (
-          <div className="skeleton h-64 rounded-lg" />
+          <div className="skeleton h-[300px] rounded-xl" />
         ) : (
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={detail.recharts_data} margin={{ top: 8, right: 12, bottom: 0, left: -10 }}>
-              <defs>
-                <linearGradient id="confBand" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.03} />
-                </linearGradient>
-                <linearGradient id="adjGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#34d399" stopOpacity={0.12} />
-                  <stop offset="95%" stopColor="#34d399" stopOpacity={0.01} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }}
-                tickFormatter={(v, i) => i % tickEvery === 0
-                  ? new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''} />
-              <YAxis tick={{ fontSize: 9, fill: '#64748b' }} />
-              <Tooltip content={<Tip />} />
-              <Legend wrapperStyle={{ fontSize: 10 }} />
-              {/* Confidence band: area between lower and upper */}
-              <Area type="monotone" dataKey="upper" name="Upper bound"
-                stroke="transparent" fill="url(#confBand)" legendType="none" />
-              <Area type="monotone" dataKey="lower" name="Lower bound"
-                stroke="transparent" fill="white" fillOpacity={0} legendType="none" />
-              {/* Baseline */}
-              <Line type="monotone" dataKey="baseline" name="Baseline"
-                stroke="#60a5fa" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-              {/* Scenario-adjusted */}
-              <Line type="monotone" dataKey="adjusted" name="Scenario adjusted"
-                stroke="#34d399" strokeWidth={2} dot={false} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={detail.recharts_data} margin={{ top: 8, right: 12, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="confBand" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.03} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
+                <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                  tickFormatter={(v, i) => i % tickEvery === 0 ? new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''}
+                  axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }} axisLine={false} tickLine={false} dx={-10} />
+                <Tooltip content={<Tip />} cursor={{ stroke: 'var(--border)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Legend wrapperStyle={{ fontSize: 11, fontWeight: 500, paddingTop: 10 }} />
+                <Area type="monotone" dataKey="upper" name="Upper bound" stroke="transparent" fill="url(#confBand)" legendType="none" />
+                <Area type="monotone" dataKey="lower" name="Lower bound" stroke="transparent" fill="var(--bg-card)" fillOpacity={1} legendType="none" />
+                <Line type="monotone" dataKey="baseline" name="Baseline" stroke="#3b82f6" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="adjusted" name="Scenario adjusted" stroke="#10b981" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 0, fill: "#10b981" }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         )}
 
-        {/* Scenario reasons */}
         {detail && detail.reasons.length > 0 && (
-          <div className="flex flex-col gap-1 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
-            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex flex-col gap-2 pt-4 border-t border-border-glass">
+            <p className="font-label-xs text-[10px] uppercase tracking-wider text-on-surface-variant font-bold">
               Scenario drivers
             </p>
-            {detail.reasons.map((r, i) => (
-              <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>· {r}</p>
-            ))}
+            <div className="flex flex-wrap gap-2">
+              {detail.reasons.map((r, i) => (
+                <span key={i} className="px-2.5 py-1 rounded bg-surface-container-low border border-border-glass text-xs font-medium text-on-surface-variant">
+                  {r}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
-
-// ── Tab 2: Sales Trends ───────────────────────────────────────────────────────
 
 function SalesTrendsTab() {
   const [days,       setDays]       = useState(30);
@@ -218,66 +193,58 @@ function SalesTrendsTab() {
 
   const load = useCallback(() => {
     setLoading(true);
-    apiGet<{ data: SalesTrendPoint[]; categories: string[]; days: number }>(
-      `/analytics/sales-trend?days=${days}`
-    )
+    apiGet<{ data: SalesTrendPoint[]; categories: string[]; days: number }>(`/analytics/sales-trend?days=${days}`)
       .then(r => { setData(r.data); setCategories(r.categories); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [days]);
 
   useEffect(() => { load(); }, [load]);
-
   const tickEvery = Math.max(1, Math.ceil(data.length / 8));
 
   return (
-    <div className="card flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Revenue by Category</h3>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Daily revenue · last {days} days</p>
+          <h3 className="font-headline-sm text-base font-bold text-on-surface">Revenue by Category</h3>
+          <p className="font-body-sm text-sm text-on-surface-variant mt-1">Daily revenue · last {days} days</p>
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1 bg-surface-container rounded-lg p-1 border border-border-glass">
           {[7, 30, 90].map(d => (
             <button key={d} onClick={() => setDays(d)}
-              className="text-xs px-2.5 py-1 rounded-lg font-medium"
-              style={{
-                background: days === d ? 'rgba(59,130,246,0.15)' : 'var(--bg-base)',
-                border: days === d ? '1px solid rgba(59,130,246,0.3)' : '1px solid var(--border)',
-                color: days === d ? '#93c5fd' : 'var(--text-secondary)',
-              }}>
+              className={`px-3 py-1.5 rounded-md font-label-md text-xs tracking-wider uppercase transition-colors ${
+                days === d ? 'bg-surface-container-high text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'
+              }`}>
               {d}d
             </button>
           ))}
         </div>
       </div>
-      {loading ? <div className="skeleton h-56 rounded-lg" /> : (
-        <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} barSize={6}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-            <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#64748b' }}
-              tickFormatter={(v, i) => i % tickEvery === 0
-                ? new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''} />
-            <YAxis tick={{ fontSize: 9, fill: '#64748b' }}
-              tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
-            <Tooltip content={<Tip />} />
-            <Legend wrapperStyle={{ fontSize: 10 }} />
-            {categories.map((cat, i) => (
-              <Bar key={cat} dataKey={cat} name={cat} stackId="a"
-                fill={CAT_COLORS[cat] ?? fallback(i)}
-                radius={i === categories.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+
+      {loading ? <div className="skeleton h-[300px] rounded-xl" /> : (
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: -20 }} barSize={8}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" strokeOpacity={0.4} />
+              <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                tickFormatter={(v, i) => i % tickEvery === 0 ? new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : ''}
+                axisLine={false} tickLine={false} dy={10} />
+              <YAxis tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`}
+                axisLine={false} tickLine={false} dx={-10} />
+              <Tooltip content={<Tip />} cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }} />
+              <Legend wrapperStyle={{ fontSize: 11, fontWeight: 500, paddingTop: 10 }} />
+              {categories.map((cat, i) => (
+                <Bar key={cat} dataKey={cat} name={cat} stackId="a" fill={CAT_COLORS[cat] ?? fallback(i)}
+                  radius={i === categories.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );
 }
-
-// ── Tab 3: Weather & Event Impact ─────────────────────────────────────────────
-// The backend aggregates revenue by event_tag (normal/hartal_pre/hartal/onam/rainy)
-// at the SalesRecord DB level. There's no dedicated endpoint yet — Tab shows top products
-// split by category as a proxy, with an honest note.
 
 function EventImpactTab() {
   const [best,    setBest]    = useState<TopProduct[]>([]);
@@ -295,47 +262,40 @@ function EventImpactTab() {
   const maxRev = Math.max(...combined.map(p => p.total_revenue), 1);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="rounded-xl px-4 py-3"
-        style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.15)' }}>
-        <p className="text-xs" style={{ color: '#93c5fd' }}>
+    <div className="flex flex-col gap-6 animate-fade-in">
+      <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-start gap-3 text-primary">
+        <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+        <p className="text-sm">
           <strong>Note:</strong> Event-tag scatter (hartal/onam/rainy vs revenue) requires a dedicated
-          <code className="mono mx-1">GET /api/analytics/event-impact</code> endpoint. 
+          <code className="mx-1.5 px-1.5 py-0.5 rounded bg-primary/20 font-mono text-[10px]">GET /api/analytics/event-impact</code> endpoint. 
           Showing 30-day top &amp; bottom products by revenue instead — all figures from DB.
         </p>
       </div>
 
-      {loading ? <div className="skeleton h-64 rounded-lg" /> : (
-        <div className="card flex flex-col gap-4">
-          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-            Product Revenue — last 30 days
-          </h3>
-          <ResponsiveContainer width="100%" height={Math.max(combined.length * 28, 120)}>
-            <BarChart data={combined} layout="vertical"
-              margin={{ top: 0, right: 12, bottom: 0, left: 110 }} barSize={12}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.04)" />
-              <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }}
-                tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} width={108} />
-              <Tooltip content={<Tip />} />
-              <Bar dataKey="total_revenue" name="Revenue (₹)" radius={[0, 4, 4, 0]}>
-                {combined.map((entry, i) => (
-                  <Cell key={i} fill={
-                    entry.total_revenue / maxRev > 0.7 ? '#34d399'
-                    : entry.total_revenue / maxRev > 0.4 ? '#60a5fa'
-                    : '#f87171'
-                  } />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      {loading ? <div className="skeleton h-[400px] rounded-2xl" /> : (
+        <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6">
+          <h3 className="font-headline-sm text-base font-bold text-on-surface">Product Revenue — last 30 days</h3>
+          <div className="w-full" style={{ height: Math.max(combined.length * 36, 200) }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={combined} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 110 }} barSize={16}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" strokeOpacity={0.4} />
+                <XAxis type="number" tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                  tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} dx={-10} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)', fontWeight: 500 }} width={108} axisLine={false} tickLine={false} />
+                <Tooltip content={<Tip />} cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }} />
+                <Bar dataKey="total_revenue" name="Revenue (₹)" radius={[0, 6, 6, 0]}>
+                  {combined.map((entry, i) => (
+                    <Cell key={i} fill={entry.total_revenue / maxRev > 0.7 ? '#10b981' : entry.total_revenue / maxRev > 0.4 ? '#3b82f6' : '#ef4444'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </div>
   );
 }
-
-// ── Tab 4: Supplier Performance ───────────────────────────────────────────────
 
 function SupplierTab() {
   const [data,    setData]    = useState<SupplierPerformance[]>([]);
@@ -347,66 +307,56 @@ function SupplierTab() {
   }, []);
 
   return (
-    <div className="card flex flex-col gap-4">
+    <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6 animate-fade-in">
       <div>
-        <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-          On-Time Delivery Rate
-        </h3>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Last 180 days · all active suppliers</p>
+        <h3 className="font-headline-sm text-base font-bold text-on-surface">On-Time Delivery Rate</h3>
+        <p className="font-body-sm text-sm text-on-surface-variant mt-1">Last 180 days · all active suppliers</p>
       </div>
-      {loading ? <div className="skeleton h-52 rounded-lg" /> : (
-        <>
-          <ResponsiveContainer width="100%" height={Math.max(data.length * 36, 120)}>
-            <BarChart data={data} layout="vertical"
-              margin={{ top: 0, right: 12, bottom: 0, left: 100 }} barSize={14}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.04)" />
-              <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 9, fill: '#64748b' }}
-                tickFormatter={v => `${v}%`} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} width={98} />
-              <Tooltip content={<Tip />} />
-              <Bar dataKey="on_time_rate_pct" name="On-time %" radius={[0, 4, 4, 0]}>
-                {data.map((entry, i) => (
-                  <Cell key={i} fill={reliabilityColor(entry.on_time_rate_pct)} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
 
-          {/* Summary table */}
-          <div className="flex flex-col gap-0 overflow-hidden rounded-lg"
-            style={{ border: '1px solid var(--border)' }}>
-            <div className="grid text-[10px] font-semibold uppercase px-4 py-2"
-              style={{ gridTemplateColumns: '1fr 80px 70px 80px', background: 'var(--bg-base)', color: 'var(--text-muted)' }}>
-              <span>Supplier</span><span className="text-right">On-time</span>
-              <span className="text-right">Rating</span><span className="text-right">Deliveries</span>
+      {loading ? <div className="skeleton h-[400px] rounded-xl" /> : (
+        <div className="space-y-8">
+          <div className="w-full" style={{ height: Math.max(data.length * 40, 200) }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} layout="vertical" margin={{ top: 0, right: 12, bottom: 0, left: 100 }} barSize={20}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" strokeOpacity={0.4} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                  tickFormatter={v => `${v}%`} axisLine={false} tickLine={false} dx={-10} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-secondary)', fontWeight: 500 }} width={98} axisLine={false} tickLine={false} />
+                <Tooltip content={<Tip />} cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }} />
+                <Bar dataKey="on_time_rate_pct" name="On-time %" radius={[0, 6, 6, 0]}>
+                  {data.map((entry, i) => <Cell key={i} fill={reliabilityColorHex(entry.on_time_rate_pct)} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-border-glass bg-surface-container-lowest">
+            <div className="grid grid-cols-4 font-label-xs text-[10px] uppercase tracking-wider font-bold text-on-surface-variant px-4 py-3 bg-surface-container-low border-b border-border-glass">
+              <span className="col-span-1">Supplier</span>
+              <span className="text-right">On-time</span>
+              <span className="text-right">Rating</span>
+              <span className="text-right">Deliveries</span>
             </div>
             {data.map((s, i) => (
-              <div key={s.supplier_id} className="grid text-xs px-4 py-2.5"
-                style={{
-                  gridTemplateColumns: '1fr 80px 70px 80px',
-                  borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                }}>
-                <span style={{ color: 'var(--text-primary)' }}>{s.name}</span>
-                <span className="text-right mono font-semibold"
-                  style={{ color: reliabilityColor(s.on_time_rate_pct) }}>
+              <div key={s.supplier_id} className={`grid grid-cols-4 text-xs px-4 py-3.5 items-center ${i > 0 ? 'border-t border-border-glass/50' : ''}`}>
+                <span className="col-span-1 font-semibold text-on-surface truncate">{s.name}</span>
+                <span className={`text-right font-mono font-bold ${reliabilityColorClass(s.on_time_rate_pct)}`}>
                   {s.on_time_rate_pct.toFixed(1)}%
                 </span>
-                <span className="text-right mono" style={{ color: '#fbbf24' }}>
+                <span className="text-right font-mono font-medium text-amber-500">
                   ★ {s.avg_rating.toFixed(1)}
                 </span>
-                <span className="text-right mono" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-right font-mono font-medium text-on-surface-variant">
                   {s.total_deliveries}
                 </span>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
 }
-
-// ── Tab 5: Inventory Health ───────────────────────────────────────────────────
 
 function InventoryHealthTab() {
   const [data,    setData]    = useState<InventoryHealthItem[]>([]);
@@ -417,108 +367,90 @@ function InventoryHealthTab() {
       .then(setData).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const statusColor: Record<string, string> = {
-    out_of_stock: '#f43f5e', critical: '#f43f5e', warning: '#fbbf24', excess: '#94a3b8', ok: '#34d399',
-  };
-  const statusLabel: Record<string, string> = {
-    out_of_stock: 'Out', critical: 'Crit', warning: 'Warn', excess: 'Excess', ok: 'OK',
-  };
+  const statusColor: Record<string, string> = { out_of_stock: '#ef4444', critical: '#ef4444', warning: '#f59e0b', excess: '#8b5cf6', ok: '#10b981' };
+  const statusLabel: Record<string, string> = { out_of_stock: 'Out', critical: 'Crit', warning: 'Warn', excess: 'Excess', ok: 'OK' };
 
-  const displayData = data.slice(0, 20).map(d => ({
-    ...d,
-    days_remaining: d.days_remaining >= 999 ? null : d.days_remaining,
-  }));
+  const displayData = data.slice(0, 20).map(d => ({ ...d, days_remaining: d.days_remaining >= 999 ? null : d.days_remaining }));
 
   return (
-    <div className="card flex flex-col gap-4">
-      <div>
-        <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
-          Inventory Health — Days Remaining
-        </h3>
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-          Sorted by urgency · red = critical / out of stock
-        </p>
+    <div className="glass-panel p-5 md:p-6 rounded-2xl border border-border-glass flex flex-col gap-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div>
+          <h3 className="font-headline-sm text-base font-bold text-on-surface">Inventory Health — Days Remaining</h3>
+          <p className="font-body-sm text-sm text-on-surface-variant mt-1">Sorted by urgency · Top 20 items</p>
+        </div>
+        {!loading && (
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(statusLabel).map(([k, v]) => {
+              const count = data.filter(d => d.status === k).length;
+              if (count === 0) return null;
+              return (
+                <span key={k} className="flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md border bg-surface-container-lowest font-medium uppercase tracking-wider" style={{ borderColor: `${statusColor[k]}40`, color: statusColor[k] }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusColor[k] }} />
+                  {v} ({count})
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
-      {loading ? <div className="skeleton h-64 rounded-lg" /> : (
-        <>
-          <ResponsiveContainer width="100%" height={Math.max(displayData.length * 26, 120)}>
-            <BarChart data={displayData} layout="vertical"
-              margin={{ top: 0, right: 50, bottom: 0, left: 110 }} barSize={10}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.04)" />
-              <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }}
-                tickFormatter={v => `${v}d`} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} width={108} />
-              <Tooltip content={<Tip />} />
+
+      {loading ? <div className="skeleton h-[400px] rounded-xl" /> : (
+        <div className="w-full" style={{ height: Math.max(displayData.length * 36, 200) }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={displayData} layout="vertical" margin={{ top: 0, right: 50, bottom: 0, left: 110 }} barSize={14}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" strokeOpacity={0.4} />
+              <XAxis type="number" tick={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}
+                tickFormatter={v => `${v}d`} axisLine={false} tickLine={false} dx={-10} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-secondary)', fontWeight: 500 }} width={108} axisLine={false} tickLine={false} />
+              <Tooltip content={<Tip />} cursor={{ fill: 'var(--surface-container-high)', opacity: 0.4 }} />
               <Bar dataKey="days_remaining" name="Days remaining" radius={[0, 4, 4, 0]}>
-                {displayData.map((entry, i) => (
-                  <Cell key={i} fill={statusColor[entry.status] ?? '#34d399'} />
-                ))}
+                {displayData.map((entry, i) => <Cell key={i} fill={statusColor[entry.status] ?? '#10b981'} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-
-          {/* Legend */}
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(statusLabel).map(([k, v]) => (
-              <span key={k} className="flex items-center gap-1.5 text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: statusColor[k] }} />
-                {v} ({data.filter(d => d.status === k).length})
-              </span>
-            ))}
-          </div>
-        </>
+        </div>
       )}
     </div>
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 const TABS = [
-  { id: 'forecast',  label: 'Demand Forecast' },
-  { id: 'sales',     label: 'Sales Trends'    },
-  { id: 'events',    label: 'Event Impact'    },
-  { id: 'suppliers', label: 'Suppliers'       },
-  { id: 'inventory', label: 'Inventory Health'},
+  { id: 'forecast',  label: 'Demand Forecast', icon: <TrendingUp className="w-4 h-4" /> },
+  { id: 'sales',     label: 'Sales Trends',    icon: <BarChart2 className="w-4 h-4" /> },
+  { id: 'events',    label: 'Event Impact',    icon: <AlertTriangle className="w-4 h-4" /> },
+  { id: 'suppliers', label: 'Suppliers',       icon: <Truck className="w-4 h-4" /> },
+  { id: 'inventory', label: 'Inventory Health',icon: <Package className="w-4 h-4" /> },
 ] as const;
-
 type TabId = typeof TABS[number]['id'];
 
 export default function AnalyticsPage() {
   const [tab, setTab] = useState<TabId>('forecast');
 
   return (
-    <div className="page-enter flex flex-col gap-5">
+    <div className="space-y-6 animate-fade-in">
       <div>
-        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Analytics</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Demand forecast · sales trends · supplier reliability · inventory health
+        <h1 className="font-headline-lg text-xl font-bold text-on-surface">Analytics & Intelligence</h1>
+        <p className="font-body-md text-on-surface-variant mt-1">
+          Deep dives into demand, sales velocity, supplier metrics, and inventory risks.
         </p>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 flex-wrap"
-        style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-border-glass">
         {TABS.map(t => (
           <button
             key={t.id}
-            id={`tab-analytics-${t.id}`}
             onClick={() => setTab(t.id)}
-            className="text-xs px-4 py-2.5 font-medium transition-all relative"
-            style={{
-              color: tab === t.id ? '#93c5fd' : 'var(--text-muted)',
-              background: 'transparent',
-              borderBottom: tab === t.id ? '2px solid #3b82f6' : '2px solid transparent',
-              marginBottom: -1,
-            }}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap border-b-2 ${
+              tab === t.id ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface hover:border-border-glass'
+            }`}
           >
-            {t.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
-      <div className="flex flex-col gap-4">
+      <div className="pt-2">
         {tab === 'forecast'  && <DemandForecastTab />}
         {tab === 'sales'     && <SalesTrendsTab />}
         {tab === 'events'    && <EventImpactTab />}

@@ -1,66 +1,42 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Package, AlertTriangle, Search, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Package, AlertTriangle, Search, RefreshCw,
+  ChevronDown, ChevronUp, Boxes,
+} from 'lucide-react';
 import { apiGet, apiPatch } from '../api/client';
 import toast from 'react-hot-toast';
 
-// ── Exact backend response shapes (from inventory.py _product_stock_status) ──
-
 interface ExpiryAlert {
-  batch_number:   string;
-  days_to_expiry: number;
-  quantity:       number;
-  severity:       'expired' | 'critical_expiry' | 'expiring_soon';
+  batch_number: string; days_to_expiry: number; quantity: number;
+  severity: 'expired' | 'critical_expiry' | 'expiring_soon';
 }
-
 interface InventoryBatch {
-  id:               number;
-  batch_number:     string;
-  quantity:         number;
-  unit:             string;
-  purchase_price:   number | null;
-  expiry_date:      string | null;
-  days_to_expiry:   number | null;
-  status:           string;
-  created_at:       string;
+  id: number; batch_number: string; quantity: number; unit: string;
+  purchase_price: number | null; expiry_date: string | null;
+  days_to_expiry: number | null; status: string; created_at: string;
 }
-
 interface InventoryRow {
-  product_id:         number;
-  name:               string;
-  sku:                string;
-  category:           string;
-  brand:              string | null;
-  unit:               string;
-  selling_price:      number;
-  cost_price:         number;
-  avg_daily_demand:   number;
-  reorder_point_days: number;
-  lead_time_days:     number;
-  current_stock:      number;
-  days_remaining:     number;
-  stock_status:       'out_of_stock' | 'critical' | 'warning' | 'excess' | 'ok';
-  expiry_alerts:      ExpiryAlert[];
-  batches:            InventoryBatch[];
+  product_id: number; name: string; sku: string; category: string;
+  brand: string | null; unit: string; selling_price: number; cost_price: number;
+  avg_daily_demand: number; reorder_point_days: number; lead_time_days: number;
+  current_stock: number; days_remaining: number;
+  stock_status: 'out_of_stock' | 'critical' | 'warning' | 'excess' | 'ok';
+  expiry_alerts: ExpiryAlert[]; batches: InventoryBatch[];
 }
 
-// ── Badge config ──────────────────────────────────────────────────────────────
-
-const STATUS: Record<InventoryRow['stock_status'], { label: string; color: string; bg: string; border: string }> = {
-  out_of_stock: { label: 'Out of Stock', color: '#f43f5e', bg: 'rgba(244,63,94,0.1)',  border: 'rgba(244,63,94,0.3)'  },
-  critical:     { label: 'Critical',     color: '#f43f5e', bg: 'rgba(244,63,94,0.07)', border: 'rgba(244,63,94,0.2)'  },
-  warning:      { label: 'Warning',      color: '#f59e0b', bg: 'rgba(245,158,11,0.08)',border: 'rgba(245,158,11,0.25)' },
-  excess:       { label: 'Excess',       color: '#60a5fa', bg: 'rgba(59,130,246,0.08)',border: 'rgba(59,130,246,0.2)'  },
-  ok:           { label: 'OK',           color: '#34d399', bg: 'rgba(52,211,153,0.07)',border: 'rgba(52,211,153,0.2)'  },
+const STATUS_STYLES: Record<InventoryRow['stock_status'], { label: string; class: string }> = {
+  out_of_stock: { label: 'Out of Stock', class: 'bg-red-100 text-red-600 border border-red-200' },
+  critical:     { label: 'Critical',     class: 'bg-red-50 text-red-500 border border-red-200' },
+  warning:      { label: 'Warning',      class: 'bg-amber-50 text-amber-600 border border-amber-200' },
+  excess:       { label: 'Excess',       class: 'bg-sky-50 text-sky-600 border border-sky-200' },
+  ok:           { label: 'In Stock',     class: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
 };
 
-// ── Expandable row ────────────────────────────────────────────────────────────
-
 function Row({ item }: { item: InventoryRow }) {
-  const [open,   setOpen]   = useState(false);
-  const [qty,    setQty]    = useState<{ batchId: number; val: number } | null>(null);
+  const [open, setOpen]     = useState(false);
+  const [qty, setQty]       = useState<{ batchId: number; val: number } | null>(null);
   const [saving, setSaving] = useState(false);
-  const s = STATUS[item.stock_status];
-
+  const s = STATUS_STYLES[item.stock_status];
   const nearestExpiry = item.batches
     .filter(b => b.expiry_date !== null)
     .sort((a, b) => (a.days_to_expiry ?? 999) - (b.days_to_expiry ?? 999))[0] ?? null;
@@ -69,84 +45,90 @@ function Row({ item }: { item: InventoryRow }) {
     if (!qty) return;
     setSaving(true);
     try {
-      // PATCH /api/inventory/{batch_id}/quantity  { quantity: float }
       await apiPatch(`/inventory/${qty.batchId}/quantity`, { quantity: qty.val });
       toast.success('Stock updated');
       setQty(null);
-    } catch { /* toast by interceptor */ } finally { setSaving(false); }
+    } catch { } finally { setSaving(false); }
   };
 
+  const stockPct = Math.min(100, (item.current_stock / Math.max(item.current_stock * 2, 1)) * 100);
+
   return (
-    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-      {/* Main row */}
+    <div className="glass-panel rounded-xl overflow-hidden border border-border-glass">
       <div
-        className="grid items-center gap-3 px-4 py-3 cursor-pointer select-none"
-        style={{ gridTemplateColumns: '90px 1fr 90px 100px 110px 90px 28px' }}
+        className="grid items-center gap-4 px-5 py-4 cursor-pointer hover:bg-surface-container-low transition-colors"
+        style={{ gridTemplateColumns: '90px 1fr 110px 100px 100px 100px 32px' }}
         onClick={() => setOpen(v => !v)}
       >
-        <span className="mono text-[11px]" style={{ color: 'var(--text-muted)' }}>{item.sku}</span>
+        <span className="font-mono text-xs text-on-surface-variant">{item.sku}</span>
         <div>
-          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{item.category}{item.brand ? ` · ${item.brand}` : ''}</p>
+          <p className="text-sm font-semibold text-on-surface">{item.name}</p>
+          <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mt-0.5">
+            {item.category}{item.brand ? ` · ${item.brand}` : ''}
+          </p>
+        </div>
+        <div className="space-y-1">
+          <p className={`font-bold font-mono text-sm ${item.stock_status === 'out_of_stock' || item.stock_status === 'critical' ? 'text-error' : 'text-on-surface'}`}>
+            {Math.round(item.current_stock)} {item.unit}s
+          </p>
+          <div className="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${item.stock_status === 'out_of_stock' ? 'bg-error' : item.stock_status === 'critical' || item.stock_status === 'warning' ? 'bg-status-warning' : 'bg-status-success'}`}
+              style={{ width: `${stockPct}%` }}
+            />
+          </div>
         </div>
         <div className="text-right">
-          <p className="font-bold mono text-sm" style={{ color: s.color }}>{Math.round(item.current_stock)}</p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{item.unit}s</p>
-        </div>
-        <div className="text-right">
-          <p className="mono text-sm" style={{ color: item.days_remaining < 3 ? '#f43f5e' : 'var(--text-secondary)' }}>
+          <p className={`font-mono text-sm font-bold ${item.days_remaining < 3 ? 'text-error' : 'text-on-surface-variant'}`}>
             {item.days_remaining >= 999 ? '∞' : `${item.days_remaining}d`}
           </p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>remaining</p>
+          <p className="text-[10px] text-on-surface-variant/60">remaining</p>
         </div>
-        <div className="text-right text-xs" style={{ color: 'var(--text-muted)' }}>
+        <div className="text-right text-xs text-on-surface-variant">
           {nearestExpiry?.expiry_date
-            ? <span style={{ color: (nearestExpiry.days_to_expiry ?? 999) <= 5 ? '#f43f5e' : 'var(--text-muted)' }}>
-                {nearestExpiry.expiry_date}
-              </span>
+            ? <span className={(nearestExpiry.days_to_expiry ?? 999) <= 5 ? 'text-error font-semibold' : ''}>{nearestExpiry.expiry_date}</span>
             : '—'}
         </div>
-        <span
-          className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-center"
-          style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}
-        >
+        <span className={`text-[10px] font-semibold font-label-xs px-2 py-0.5 rounded-full text-center uppercase ${s.class}`}>
           {s.label}
         </span>
-        <span style={{ color: 'var(--text-muted)' }}>{open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}</span>
+        <span className="text-on-surface-variant">{open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}</span>
       </div>
 
-      {/* Expanded: batches */}
       {open && (
-        <div className="px-4 pb-4 flex flex-col gap-2" style={{ borderTop: '1px solid var(--border)' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider pt-3" style={{ color: 'var(--text-muted)' }}>Batches</p>
+        <div className="px-5 pb-4 pt-3 border-t border-border-glass bg-surface-container-low/30 flex flex-col gap-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant">Batches</p>
           {item.batches.filter(b => b.status !== 'depleted').map(b => (
-            <div key={b.id} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg gap-4"
-              style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
-              <span className="mono" style={{ color: 'var(--text-muted)' }}>#{b.batch_number}</span>
+            <div key={b.id} className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-surface-container-low border border-border-glass gap-4">
+              <span className="font-mono text-on-surface-variant">#{b.batch_number}</span>
               {qty?.batchId === b.id ? (
                 <div className="flex items-center gap-2">
-                  <input type="number" className="input w-24 py-1 text-xs" value={qty.val} min={0} step={0.1}
+                  <input type="number" className="nexus-input w-20 py-1 text-xs text-center rounded px-2"
+                    value={qty.val} min={0} step={0.1}
                     onChange={e => setQty({ batchId: b.id, val: parseFloat(e.target.value) || 0 })} />
-                  <button onClick={saveQty} disabled={saving} className="btn-success text-xs py-1 px-2">
+                  <button onClick={saveQty} disabled={saving}
+                    className="px-2 py-1 bg-primary text-white text-xs rounded hover:bg-indigo-700 transition-colors font-semibold disabled:opacity-50">
                     {saving ? 'Saving…' : 'Save'}
                   </button>
-                  <button onClick={() => setQty(null)} className="btn-ghost text-xs py-1 px-2">Cancel</button>
+                  <button onClick={() => setQty(null)}
+                    className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-xs rounded hover:bg-surface-container-highest transition-colors">
+                    Cancel
+                  </button>
                 </div>
               ) : (
                 <>
-                  <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {Math.round(b.quantity)} {b.unit}s
-                  </span>
-                  <span style={{ color: (b.days_to_expiry ?? 999) <= 5 ? '#f43f5e' : 'var(--text-muted)' }}>
+                  <span className="font-semibold text-on-surface">{Math.round(b.quantity)} {b.unit}s</span>
+                  <span className={(b.days_to_expiry ?? 999) <= 5 ? 'text-error font-semibold' : 'text-on-surface-variant'}>
                     {b.expiry_date ? `Exp: ${b.expiry_date}` : 'No expiry'}
                     {b.days_to_expiry !== null && b.days_to_expiry <= 10 && ` (${b.days_to_expiry}d)`}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
-                    background: b.status === 'active' ? 'rgba(52,211,153,0.08)' : 'rgba(245,158,11,0.08)',
-                    color: b.status === 'active' ? '#34d399' : '#f59e0b',
-                  }}>{b.status}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded ${b.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                    {b.status}
+                  </span>
                   <button onClick={() => setQty({ batchId: b.id, val: b.quantity })}
-                    className="text-[11px]" style={{ color: '#60a5fa' }}>Adjust</button>
+                    className="text-[11px] text-primary hover:text-indigo-700 font-semibold transition-colors">
+                    Adjust
+                  </button>
                 </>
               )}
             </div>
@@ -157,27 +139,23 @@ function Row({ item }: { item: InventoryRow }) {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-
 export default function InventoryPage() {
-  const [items,      setItems]      = useState<InventoryRow[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [search,     setSearch]     = useState('');
+  const [items, setItems]           = useState<InventoryRow[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState('');
   const [statusFilter, setStatusFilter] = useState<InventoryRow['stock_status'] | 'all'>('all');
   const [alertsOnly, setAlertsOnly] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // GET /api/inventory or GET /api/inventory/alerts
       const data = await apiGet<InventoryRow[]>(alertsOnly ? '/inventory/alerts' : '/inventory');
       setItems(data);
-    } catch { /* toast */ } finally { setLoading(false); }
+    } catch { } finally { setLoading(false); }
   }, [alertsOnly]);
 
   useEffect(() => { load(); }, [load]);
 
-  // Expiry alert banner — batches expiring in ≤ 5 days across all products
   const criticalExpiry = items.flatMap(i =>
     i.expiry_alerts.filter(a => a.days_to_expiry <= 5 && a.days_to_expiry > 0)
       .map(a => ({ ...a, productName: i.name }))
@@ -194,92 +172,95 @@ export default function InventoryPage() {
       return (pri[a.stock_status] ?? 5) - (pri[b.stock_status] ?? 5);
     });
 
-  const counts = Object.keys(STATUS).reduce((acc, k) => ({
-    ...acc,
-    [k]: items.filter(i => i.stock_status === k).length,
+  const counts = (Object.keys(STATUS_STYLES) as InventoryRow['stock_status'][]).reduce((acc, k) => ({
+    ...acc, [k]: items.filter(i => i.stock_status === k).length,
   }), {} as Record<string, number>);
 
   return (
-    <div className="page-enter flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Inventory</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-            {items.length} products · {counts.out_of_stock + counts.critical} critical alerts
+          <h3 className="font-headline-lg text-on-surface">Inventory Command Hub</h3>
+          <p className="font-body-md text-on-surface-variant mt-1">
+            {items.length} products · {(counts.out_of_stock || 0) + (counts.critical || 0)} critical alerts
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setAlertsOnly(v => !v)}
-            className={alertsOnly ? 'btn-primary text-xs' : 'btn-ghost text-xs'}>
-            <AlertTriangle size={12} /> {alertsOnly ? 'Alerts Only ✓' : 'Alerts Only'}
+        <div className="flex items-center gap-2.5">
+          <button
+            id="btn-alerts-only"
+            onClick={() => setAlertsOnly(v => !v)}
+            className={`px-4 py-2 rounded-lg font-label-md text-xs uppercase tracking-wider transition-all border flex items-center gap-1.5 ${alertsOnly ? 'bg-primary/10 text-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-border-glass hover:bg-surface-container-high'}`}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            {alertsOnly ? 'Alerts Only ✓' : 'Alerts Only'}
           </button>
-          <button onClick={load} className="btn-ghost p-2"><RefreshCw size={13} /></button>
+          <button onClick={load} className="p-2 border border-border-glass rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-all">
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* ── Expiry banners ─────────────────────────────────────────────── */}
+      {/* Expiry banners */}
       {expired.length > 0 && (
-        <div className="rounded-xl px-4 py-3 flex flex-col gap-1"
-          style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.3)' }}>
-          <p className="text-xs font-bold" style={{ color: '#f43f5e' }}>🚨 EXPIRED STOCK — Remove immediately</p>
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 space-y-1">
+          <p className="text-xs font-bold text-red-600">🚨 EXPIRED STOCK — Remove immediately</p>
           {expired.map((e, i) => (
-            <p key={i} className="text-xs" style={{ color: '#fca5a5' }}>
-              {e.productName} · Batch #{e.batch_number} · {Math.round(e.quantity)} units EXPIRED
-            </p>
+            <p key={i} className="text-xs text-red-500">{e.productName} · Batch #{e.batch_number} · {Math.round(e.quantity)} units EXPIRED</p>
           ))}
         </div>
       )}
       {criticalExpiry.length > 0 && (
-        <div className="rounded-xl px-4 py-3 flex flex-col gap-1"
-          style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.25)' }}>
-          <p className="text-xs font-bold" style={{ color: '#f59e0b' }}>⚠️ Expiring within 5 days</p>
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+          <p className="text-xs font-bold text-amber-600">⚠️ Expiring within 5 days</p>
           {criticalExpiry.map((e, i) => (
-            <p key={i} className="text-xs" style={{ color: '#fde68a' }}>
-              {e.productName} · Batch #{e.batch_number} · {Math.round(e.quantity)} units · {e.days_to_expiry}d left
-            </p>
+            <p key={i} className="text-xs text-amber-600">{e.productName} · Batch #{e.batch_number} · {Math.round(e.quantity)} units · {e.days_to_expiry}d left</p>
           ))}
         </div>
       )}
 
-      {/* ── Status filter chips ──────────────────────────────────────── */}
+      {/* Status filter tabs */}
       <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setStatusFilter('all')}
-          className="text-xs px-3 py-1.5 rounded-xl font-medium"
-          style={{ background: statusFilter === 'all' ? 'rgba(59,130,246,0.15)' : 'var(--bg-card)', border: '1px solid ' + (statusFilter === 'all' ? 'rgba(59,130,246,0.3)' : 'var(--border)'), color: statusFilter === 'all' ? '#93c5fd' : 'var(--text-secondary)' }}>
+          className={`px-4 py-2 rounded-lg font-label-md text-xs uppercase tracking-wider transition-all border ${statusFilter === 'all' ? 'bg-primary/10 text-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-border-glass hover:bg-surface-container-high'}`}>
           All ({items.length})
         </button>
-        {(Object.entries(STATUS) as [InventoryRow['stock_status'], typeof STATUS[keyof typeof STATUS]][]).map(([k, v]) => counts[k] > 0 && (
-          <button key={k} onClick={() => setStatusFilter(statusFilter === k ? 'all' : k)}
-            className="text-xs px-3 py-1.5 rounded-xl font-medium"
-            style={{ background: statusFilter === k ? v.bg : 'var(--bg-card)', border: `1px solid ${statusFilter === k ? v.border : 'var(--border)'}`, color: statusFilter === k ? v.color : 'var(--text-secondary)' }}>
-            {v.label} ({counts[k]})
-          </button>
-        ))}
+        {(Object.entries(STATUS_STYLES) as [InventoryRow['stock_status'], typeof STATUS_STYLES[keyof typeof STATUS_STYLES]][]).map(([k, v]) =>
+          counts[k] > 0 && (
+            <button key={k} onClick={() => setStatusFilter(statusFilter === k ? 'all' : k)}
+              className={`px-4 py-2 rounded-lg font-label-md text-xs uppercase tracking-wider transition-all border ${statusFilter === k ? v.class : 'bg-surface-container-low text-on-surface-variant border-border-glass hover:bg-surface-container-high'}`}>
+              {v.label} ({counts[k]})
+            </button>
+          )
+        )}
       </div>
 
-      {/* ── Search ──────────────────────────────────────────────────────── */}
+      {/* Search */}
       <div className="relative">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
-        <input className="input pl-9" placeholder="Search by name or SKU…" value={search} onChange={e => setSearch(e.target.value)} />
+        <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+        <input className="nexus-input w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" placeholder="Search by name or SKU…"
+          value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
-      {/* ── Column headers ──────────────────────────────────────────────── */}
-      <div className="grid text-[10px] font-semibold uppercase tracking-wider px-4 py-2 rounded-lg"
-        style={{ gridTemplateColumns: '90px 1fr 90px 100px 110px 90px 28px', color: 'var(--text-muted)', background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <span>SKU</span><span>Product</span><span className="text-right">Stock</span>
-        <span className="text-right">Days Left</span><span className="text-right">Nearest Expiry</span>
+      {/* Column headers */}
+      <div className="grid text-[10px] font-semibold uppercase tracking-wider px-5 py-2.5 rounded-lg bg-surface-container-low border border-border-glass text-on-surface-variant"
+        style={{ gridTemplateColumns: '90px 1fr 110px 100px 100px 100px 32px' }}>
+        <span>SKU</span><span>Product</span><span>Stock</span>
+        <span className="text-right">Days Left</span><span className="text-right">Exp. Date</span>
         <span>Status</span><span />
       </div>
 
-      {/* ── Rows ────────────────────────────────────────────────────────── */}
+      {/* Rows */}
       {loading
-        ? [0,1,2,3,4].map(i => <div key={i} className="skeleton h-14 rounded-xl" />)
+        ? [0,1,2,3,4].map(i => <div key={i} className="glass-panel h-16 rounded-xl border border-border-glass animate-pulse" />)
         : filtered.length === 0
-          ? <div className="card py-12 flex flex-col items-center gap-2" style={{ borderStyle: 'dashed' }}>
-              <Package size={26} style={{ color: 'var(--text-muted)' }} />
-              <p style={{ color: 'var(--text-muted)' }}>No products found</p>
+          ? (
+            <div className="glass-panel py-16 flex flex-col items-center gap-3 rounded-xl border border-border-glass">
+              <Boxes className="w-8 h-8 text-on-surface-variant/40" />
+              <p className="text-on-surface-variant font-medium">No products found</p>
             </div>
-          : <div className="flex flex-col gap-2">{filtered.map(item => <Row key={item.product_id} item={item} />)}</div>
+          )
+          : <div className="flex flex-col gap-3">{filtered.map(item => <Row key={item.product_id} item={item} />)}</div>
       }
     </div>
   );

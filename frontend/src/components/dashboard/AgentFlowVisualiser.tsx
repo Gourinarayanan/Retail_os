@@ -1,198 +1,56 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Loader2, CheckCircle2, XCircle, Clock, Sparkles, ChevronRight } from 'lucide-react';
+import {
+  Play, Loader2, CheckCircle2, XCircle, Clock, Sparkles,
+  ChevronRight, Network, Activity, Terminal,
+} from 'lucide-react';
 import { streamBriefing } from '../../api/client';
 import type { AgentLogEntry, AgentName, SSECompleteEvent } from '../../types';
 
-// ── Agent pipeline config ─────────────────────────────────────────────────────
-
 interface AgentConfig {
-  id:       AgentName;
-  label:    string;
-  icon:     string;
-  color:    string;
-  bgColor:  string;
+  id:    AgentName;
+  label: string;
+  icon:  string;
+  color: string;
 }
 
 const AGENTS: AgentConfig[] = [
-  { id: 'context',     label: 'Context',     icon: '🌤️',  color: '#60a5fa', bgColor: 'rgba(59,130,246,0.12)' },
-  { id: 'scenario',    label: 'Scenario',    icon: '🎯',  color: '#c4b5fd', bgColor: 'rgba(139,92,246,0.12)' },
-  { id: 'forecast',    label: 'Forecast',    icon: '📈',  color: '#34d399', bgColor: 'rgba(52,211,153,0.12)' },
-  { id: 'inventory',   label: 'Inventory',   icon: '📦',  color: '#fbbf24', bgColor: 'rgba(251,191,36,0.12)' },
-  { id: 'supplier',    label: 'Supplier',    icon: '🚛',  color: '#f87171', bgColor: 'rgba(248,113,113,0.12)' },
-  { id: 'opportunity', label: 'Opportunity', icon: '💡',  color: '#fb923c', bgColor: 'rgba(251,146,60,0.12)' },
-  { id: 'briefing',    label: 'Briefing',    icon: '✨',  color: '#e879f9', bgColor: 'rgba(232,121,249,0.12)' },
+  { id: 'context',     label: 'Context',     icon: '🌤️', color: 'text-sky-500'    },
+  { id: 'scenario',    label: 'Scenario',    icon: '🎯', color: 'text-violet-500' },
+  { id: 'forecast',    label: 'Forecast',    icon: '📈', color: 'text-emerald-500'},
+  { id: 'inventory',   label: 'Inventory',   icon: '📦', color: 'text-amber-500'  },
+  { id: 'supplier',    label: 'Supplier',    icon: '🚛', color: 'text-red-500'    },
+  { id: 'opportunity', label: 'Opportunity', icon: '💡', color: 'text-orange-500' },
+  { id: 'briefing',    label: 'Briefing',    icon: '✨', color: 'text-pink-500'   },
 ];
 
 type NodeStatus = 'idle' | 'running' | 'complete' | 'error';
-
-interface NodeState {
-  status:    NodeStatus;
-  summary:   string;
-  elapsed:   number | null;   // ms
-  startedAt: number | null;   // Date.now()
-}
-
+interface NodeState { status: NodeStatus; summary: string; elapsed: number | null; startedAt: number | null; }
 const INITIAL_NODES: Record<string, NodeState> = Object.fromEntries(
-  AGENTS.map((a) => [a.id, { status: 'idle', summary: '', elapsed: null, startedAt: null }])
+  AGENTS.map(a => [a.id, { status: 'idle', summary: '', elapsed: null, startedAt: null }])
 );
 
-// ── Animated connector ────────────────────────────────────────────────────────
-
-function Connector({ active }: { active: boolean }) {
-  return (
-    <div className="flex items-center shrink-0" style={{ width: 28 }}>
-      <div
-        className="h-0.5 w-full transition-all duration-500"
-        style={{
-          background: active
-            ? 'linear-gradient(90deg, #3b82f6, #8b5cf6)'
-            : 'var(--border)',
-          boxShadow: active ? '0 0 6px rgba(59,130,246,0.5)' : 'none',
-        }}
-      />
-      <ChevronRight
-        size={12}
-        style={{
-          color: active ? '#60a5fa' : 'var(--text-muted)',
-          marginLeft: -6,
-          transition: 'color 0.3s',
-        }}
-      />
-    </div>
-  );
-}
-
-// ── Agent Node Box ────────────────────────────────────────────────────────────
-
-function AgentNode({
-  agent,
-  state,
-}: {
-  agent:  AgentConfig;
-  state:  NodeState;
-}) {
-  const isRunning  = state.status === 'running';
-  const isComplete = state.status === 'complete';
-  const isError    = state.status === 'error';
-  const isIdle     = state.status === 'idle';
-
-  const borderColor = isRunning  ? agent.color
-                    : isComplete ? agent.color
-                    : isError    ? '#f43f5e'
-                    : 'var(--border)';
-
-  const bgColor = isRunning  ? agent.bgColor
-                : isComplete ? agent.bgColor.replace('0.12', '0.06')
-                : isError    ? 'rgba(244,63,94,0.08)'
-                : 'var(--bg-card)';
-
-  const glowStyle = isRunning
-    ? { boxShadow: `0 0 16px ${agent.color}40` }
-    : isComplete
-    ? { boxShadow: `0 0 8px ${agent.color}25` }
-    : {};
-
-  return (
-    <div
-      className="flex flex-col items-center gap-2 transition-all duration-400"
-      style={{ minWidth: 82 }}
-    >
-      {/* Box */}
-      <div
-        className="relative flex flex-col items-center gap-1 rounded-xl px-3 py-3 w-full text-center transition-all duration-400"
-        style={{
-          background:   bgColor,
-          border:       `1.5px solid ${borderColor}`,
-          opacity:      isIdle ? 0.45 : 1,
-          transform:    isRunning ? 'scale(1.04)' : 'scale(1)',
-          ...glowStyle,
-        }}
-      >
-        {/* Pulse ring when running */}
-        {isRunning && (
-          <span
-            className="absolute inset-0 rounded-xl animate-ping"
-            style={{ border: `1.5px solid ${agent.color}`, opacity: 0.3 }}
-          />
-        )}
-
-        {/* Status icon overlay */}
-        <div className="absolute -top-2 -right-2">
-          {isRunning  && <Loader2 size={14} style={{ color: agent.color }} className="animate-spin" />}
-          {isComplete && <CheckCircle2 size={14} style={{ color: '#10b981' }} />}
-          {isError    && <XCircle size={14} style={{ color: '#f43f5e' }} />}
-        </div>
-
-        {/* Emoji icon */}
-        <span className="text-lg leading-none">{agent.icon}</span>
-
-        {/* Label */}
-        <span
-          className="text-[11px] font-semibold leading-tight"
-          style={{ color: isIdle ? 'var(--text-muted)' : 'var(--text-primary)' }}
-        >
-          {agent.label}
-        </span>
-
-        {/* Elapsed */}
-        {state.elapsed !== null && (
-          <span className="flex items-center gap-0.5 text-[10px] mono" style={{ color: 'var(--text-muted)' }}>
-            <Clock size={8} />
-            {(state.elapsed / 1000).toFixed(1)}s
-          </span>
-        )}
-
-        {/* Running indicator */}
-        {isRunning && state.startedAt && (
-          <LiveElapsed startedAt={state.startedAt} color={agent.color} />
-        )}
-      </div>
-
-      {/* Summary tooltip on hover */}
-      {state.summary && !isIdle && (
-        <p
-          className="text-[10px] text-center leading-snug px-1 max-w-[90px]"
-          style={{ color: 'var(--text-muted)' }}
-          title={state.summary}
-        >
-          {state.summary.slice(0, 40)}{state.summary.length > 40 ? '…' : ''}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Live elapsed timer (updates every 100ms while running)
-function LiveElapsed({ startedAt, color }: { startedAt: number; color: string }) {
+function LiveElapsed({ startedAt }: { startedAt: number }) {
   const [elapsed, setElapsed] = useState(0);
-
   useEffect(() => {
     const id = setInterval(() => setElapsed(Date.now() - startedAt), 100);
     return () => clearInterval(id);
   }, [startedAt]);
-
-  return (
-    <span className="text-[10px] mono" style={{ color }}>
-      {(elapsed / 1000).toFixed(1)}s
-    </span>
-  );
+  return <span className="text-[10px] font-mono text-primary">{(elapsed / 1000).toFixed(1)}s</span>;
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
 interface AgentFlowVisualiserProps {
-  onComplete?: () => void;  // callback when pipeline finishes — parent refetches briefing
+  onComplete?: () => void;
 }
 
 export default function AgentFlowVisualiser({ onComplete }: AgentFlowVisualiserProps) {
-  const [running,    setRunning]    = useState(false);
-  const [nodes,      setNodes]      = useState<Record<string, NodeState>>(INITIAL_NODES);
-  const [summary,    setSummary]    = useState<SSECompleteEvent | null>(null);
-  const [error,      setError]      = useState<string | null>(null);
-  const [totalTime,  setTotalTime]  = useState<number | null>(null);
+  const [running,   setRunning]   = useState(false);
+  const [nodes,     setNodes]     = useState<Record<string, NodeState>>(INITIAL_NODES);
+  const [summary,   setSummary]   = useState<SSECompleteEvent | null>(null);
+  const [error,     setError]     = useState<string | null>(null);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string>('context');
   const startTimeRef = useRef<number | null>(null);
 
-  // ── Reset ─────────────────────────────────────────────────────────────
   const reset = useCallback(() => {
     setNodes(INITIAL_NODES);
     setSummary(null);
@@ -201,47 +59,32 @@ export default function AgentFlowVisualiser({ onComplete }: AgentFlowVisualiserP
     startTimeRef.current = null;
   }, []);
 
-  // ── Handle SSE entries ────────────────────────────────────────────────
   const handleEntry = useCallback((raw: object) => {
     const entry = raw as AgentLogEntry;
-    const { agent, status, summary: msg, ts } = entry;
-
-    setNodes((prev) => {
+    const { agent, status, summary: msg } = entry;
+    setSelectedId(agent);
+    setNodes(prev => {
       const node = prev[agent] ?? { status: 'idle', summary: '', elapsed: null, startedAt: null };
-
-      if (status === 'started') {
-        return { ...prev, [agent]: { status: 'running', summary: msg, startedAt: Date.now(), elapsed: null } };
-      }
-      if (status === 'complete') {
-        const elapsed = node.startedAt ? Date.now() - node.startedAt : null;
-        return { ...prev, [agent]: { status: 'complete', summary: msg, elapsed, startedAt: node.startedAt } };
-      }
-      if (status === 'error') {
-        const elapsed = node.startedAt ? Date.now() - node.startedAt : null;
-        return { ...prev, [agent]: { status: 'error', summary: msg, elapsed, startedAt: node.startedAt } };
-      }
+      if (status === 'started')  return { ...prev, [agent]: { status: 'running',  summary: msg, startedAt: Date.now(), elapsed: null } };
+      if (status === 'complete') return { ...prev, [agent]: { status: 'complete', summary: msg, elapsed: node.startedAt ? Date.now() - node.startedAt : null, startedAt: node.startedAt } };
+      if (status === 'error')    return { ...prev, [agent]: { status: 'error',    summary: msg, elapsed: node.startedAt ? Date.now() - node.startedAt : null, startedAt: node.startedAt } };
       return prev;
     });
   }, []);
 
-  // ── Handle complete ───────────────────────────────────────────────────
   const handleComplete = useCallback((raw: object) => {
     const data = raw as SSECompleteEvent;
     setSummary(data);
     setRunning(false);
-    if (startTimeRef.current) {
-      setTotalTime(Date.now() - startTimeRef.current);
-    }
+    if (startTimeRef.current) setTotalTime(Date.now() - startTimeRef.current);
     onComplete?.();
   }, [onComplete]);
 
-  // ── Handle error ──────────────────────────────────────────────────────
   const handleError = useCallback((err: Error) => {
     setError(err.message);
     setRunning(false);
   }, []);
 
-  // ── Start pipeline ────────────────────────────────────────────────────
   const startPipeline = useCallback(async () => {
     reset();
     setRunning(true);
@@ -249,115 +92,146 @@ export default function AgentFlowVisualiser({ onComplete }: AgentFlowVisualiserP
     await streamBriefing(handleEntry, handleComplete, handleError);
   }, [reset, handleEntry, handleComplete, handleError]);
 
-  // ── Which agent index is running/last completed ────────────────────────
-  const lastActiveIdx = AGENTS.findIndex(
-    (a) => nodes[a.id]?.status === 'running'
-  );
-  const completedSet = new Set(
-    AGENTS.filter((a) => nodes[a.id]?.status === 'complete').map((a) => a.id)
-  );
+  const selectedNode = nodes[selectedId];
+  const selectedAgent = AGENTS.find(a => a.id === selectedId) ?? AGENTS[0];
 
   return (
-    <div className="card flex flex-col gap-5">
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Agent Pipeline
-          </h2>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            7 AI agents running in sequence
-          </p>
+    <div className="glass-panel rounded-xl p-6 border border-border-glass">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-border-glass/60">
+        <div className="flex items-center gap-3">
+          <Network className="w-5 h-5 text-primary" />
+          <div>
+            <h3 className="font-headline-sm font-bold text-on-surface">Agent Pipeline Orchestrator</h3>
+            <p className="font-label-xs text-on-surface-variant uppercase tracking-wider">Multi-Agent Workflow States</p>
+          </div>
         </div>
         <button
           id="btn-run-briefing"
           onClick={startPipeline}
           disabled={running}
-          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          aria-label="Run morning briefing pipeline"
+          className="px-4 py-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary disabled:opacity-40 transition-all font-label-md text-xs tracking-wider uppercase flex items-center gap-2"
         >
           {running
-            ? <><Loader2 size={14} className="animate-spin" /> Running…</>
-            : <><Play size={14} /> Run Briefing</>
+            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Running…</>
+            : <><Play className="w-3.5 h-3.5" /> Run Briefing</>
           }
         </button>
       </div>
 
-      {/* ── Flow ───────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between overflow-x-auto pb-1">
-        {AGENTS.map((agent, idx) => (
-          <React.Fragment key={agent.id}>
-            <AgentNode agent={agent} state={nodes[agent.id]} />
-            {idx < AGENTS.length - 1 && (
-              <Connector
-                active={
-                  completedSet.has(agent.id) ||
-                  (lastActiveIdx > idx)
-                }
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left: Node list */}
+        <div className="lg:col-span-7 flex flex-col gap-3">
+          {AGENTS.map(agent => {
+            const state = nodes[agent.id];
+            const isSelected  = agent.id === selectedId;
+            const isCompleted = state.status === 'complete';
+            const isRunning   = state.status === 'running';
+            const isError     = state.status === 'error';
 
-      {/* ── Error ──────────────────────────────────────────────────── */}
-      {error && (
-        <div
-          className="rounded-lg px-4 py-3 text-sm flex items-center gap-2"
-          style={{ background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.25)', color: '#fda4af' }}
-        >
-          <XCircle size={14} /> Pipeline error: {error}
+            return (
+              <div
+                key={agent.id}
+                onClick={() => setSelectedId(agent.id)}
+                className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 relative overflow-hidden group ${
+                  isSelected
+                    ? 'bg-primary/5 border-primary'
+                    : 'bg-surface-container-low border-border-glass hover:bg-surface-container-high'
+                }`}
+              >
+                {isRunning && <div className="absolute top-0 left-0 w-1 h-full bg-primary animate-pulse" />}
+
+                <div className="flex items-center justify-between gap-4 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg border border-border-glass/80 ${
+                      isRunning ? 'bg-primary/20' : isCompleted ? 'bg-primary/10' : 'bg-surface-container'
+                    }`}>
+                      <span className="text-base leading-none">{agent.icon}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-headline-sm text-sm font-bold text-on-surface group-hover:text-primary transition-colors">
+                        {agent.label} Agent
+                      </h4>
+                      <p className="font-label-xs text-xs text-on-surface-variant uppercase mt-0.5">
+                        {isRunning && state.startedAt ? <LiveElapsed startedAt={state.startedAt} /> : state.status}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 select-none">
+                    <span className={`text-[11px] font-label-xs uppercase tracking-wider px-2 py-0.5 rounded ${
+                      isRunning   ? 'bg-primary/20 text-primary font-bold animate-pulse'
+                      : isCompleted ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                      : isError     ? 'bg-red-50 text-red-500 border border-red-200'
+                      : 'bg-surface-container-highest text-on-surface-variant'
+                    }`}>
+                      {isError ? 'error' : state.status}
+                    </span>
+                    {isCompleted && state.elapsed != null && (
+                      <span className="font-label-xs text-[10px] text-on-surface-variant font-mono">
+                        {(state.elapsed / 1000).toFixed(1)}s
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
 
-      {/* ── Complete summary ────────────────────────────────────────── */}
-      {summary && (
-        <div
-          className="stream-item rounded-xl px-4 py-4 flex flex-col gap-3"
-          style={{
-            background: 'rgba(16,185,129,0.06)',
-            border: '1px solid rgba(16,185,129,0.2)',
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={15} style={{ color: '#10b981' }} />
-              <span className="text-sm font-semibold" style={{ color: '#6ee7b7' }}>
-                Briefing Complete
-              </span>
+        {/* Right: Console */}
+        <div className="lg:col-span-5 glass-panel rounded-lg p-5 border border-border-glass flex flex-col justify-between min-h-[300px]">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-border-glass pb-3">
+              <Terminal className="w-4 h-4 text-primary" />
+              <span className="font-label-md text-on-surface uppercase tracking-wider">Agent Console Output</span>
             </div>
-            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-              {totalTime && (
-                <span className="mono">{(totalTime / 1000).toFixed(1)}s total</span>
+
+            <div className="space-y-2">
+              <p className="font-label-xs text-on-surface-variant uppercase">TARGET NODE:</p>
+              <h4 className="font-headline-sm text-base text-primary font-bold">{selectedAgent.label} Agent</h4>
+              <p className="font-label-xs text-xs text-on-surface-variant">
+                STATUS: <span className="text-primary">{selectedNode?.status?.toUpperCase()}</span>
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded bg-surface-container-lowest border border-border-glass font-mono text-xs text-on-surface-variant leading-relaxed h-32 overflow-y-auto">
+              {selectedNode?.summary ? (
+                <><span className="text-primary font-bold">&gt;_ </span>{selectedNode.summary}</>
+              ) : (
+                <span className="italic text-on-surface-variant/40">&gt;_ Listening for execution queue... Node in standby.</span>
               )}
-              <span>{summary.orders_count} orders</span>
-              <span>{summary.opportunities_count} opportunities</span>
             </div>
+
+            {error && (
+              <div className="p-3 rounded bg-red-50 border border-red-200 text-red-600 text-xs flex items-center gap-2">
+                <XCircle className="w-4 h-4 shrink-0" /> {error}
+              </div>
+            )}
+
+            {summary && (
+              <div className="p-3 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <CheckCircle2 className="w-4 h-4" /> Pipeline Complete!
+                </div>
+                <p>{summary.orders_count} orders · {summary.opportunities_count} opportunities
+                  {totalTime && ` · ${(totalTime / 1000).toFixed(1)}s total`}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Brief preview */}
-          {summary.brief_preview && (
-            <div
-              className="rounded-lg px-3 py-2.5 text-xs leading-relaxed"
-              style={{
-                background: 'rgba(0,0,0,0.2)',
-                color: 'var(--text-secondary)',
-                borderLeft: '2px solid rgba(139,92,246,0.5)',
-              }}
-            >
-              <Sparkles size={11} className="inline mr-1.5" style={{ color: '#c4b5fd' }} />
-              {summary.brief_preview}…
+          <div className="mt-4 pt-4 border-t border-border-glass text-xs space-y-2 text-on-surface-variant select-none">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+              <span>Pipeline Health: Operational</span>
             </div>
-          )}
+            <p className="text-[10px] uppercase font-label-xs text-on-surface-variant/60">
+              Gemini-powered multi-agent orchestration
+            </p>
+          </div>
         </div>
-      )}
-
-      {/* ── Idle state hint ─────────────────────────────────────────── */}
-      {!running && !summary && !error && (
-        <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-          Click <strong>Run Briefing</strong> to start the 7-agent AI pipeline
-        </p>
-      )}
+      </div>
     </div>
   );
 }

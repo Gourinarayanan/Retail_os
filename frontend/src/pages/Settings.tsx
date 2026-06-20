@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings2, CheckCircle2, XCircle, Save, Loader2, Info } from 'lucide-react';
+import { Settings2, CheckCircle2, XCircle, Save, Loader2, Info, Building2, MapPin, Clock, BrainCircuit, Bell, Globe, Cloud } from 'lucide-react';
 import { apiGet, apiPatch } from '../api/client';
 import toast from 'react-hot-toast';
-
-// ── Exact backend response shape (from routers/settings.py SettingsOut) ───────
 
 interface SettingsData {
   business_name:      string;
@@ -16,24 +14,33 @@ interface SettingsData {
   weather_configured: boolean;
 }
 
-// ── API status check pill ─────────────────────────────────────────────────────
-
-function ApiStatus({ label, ok }: { label: string; ok: boolean }) {
+function ApiStatus({ label, ok, icon: Icon }: { label: string; ok: boolean; icon: React.ElementType }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 rounded-lg"
-      style={{ background: 'var(--bg-base)', border: '1px solid var(--border)' }}>
-      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-      <div className="flex items-center gap-1.5">
-        {ok
-          ? <><CheckCircle2 size={13} style={{ color: '#34d399' }} /><span className="text-xs" style={{ color: '#34d399' }}>Configured</span></>
-          : <><XCircle size={13} style={{ color: '#f43f5e' }} /><span className="text-xs" style={{ color: '#f43f5e' }}>Not set</span></>
-        }
+    <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low border border-border-glass">
+      <div className="flex items-center gap-3">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
+          ok ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-surface-container border-border-glass text-on-surface-variant'
+        }`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <span className="font-semibold text-sm text-on-surface">{label}</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {ok ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span className="font-label-xs text-[10px] uppercase tracking-wider font-bold">Active</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-error/10 text-error border border-error/20">
+            <XCircle className="w-3.5 h-3.5" />
+            <span className="font-label-xs text-[10px] uppercase tracking-wider font-bold">Missing</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
   const [data,    setData]    = useState<SettingsData | null>(null);
@@ -41,7 +48,6 @@ export default function SettingsPage() {
   const [saving,  setSaving]  = useState(false);
   const [form,    setForm]    = useState<Partial<SettingsData>>({});
 
-  // GET /api/settings
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -53,102 +59,111 @@ export default function SettingsPage() {
         weather_city:       s.weather_city,
         morning_brief_time: s.morning_brief_time,
       });
-    } catch { /* toast by interceptor */ } finally { setLoading(false); }
+    } catch { } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  // PATCH /api/settings
   const save = async () => {
     setSaving(true);
     try {
       const updated = await apiPatch<SettingsData>('/settings', form);
       setData(updated);
-      toast.success('Settings saved!');
-    } catch { /* toast by interceptor */ } finally { setSaving(false); }
+      toast.success('Settings saved successfully', {
+        style: { background: '#10b981', color: 'white', border: 'none', borderRadius: '12px' },
+        icon: '💾',
+      });
+    } catch { } finally { setSaving(false); }
   };
 
-  const field = (key: keyof typeof form, label: string, placeholder?: string, hint?: string) => (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{label}</label>
+  const field = (key: keyof typeof form, label: string, placeholder: string, hint: string, icon: React.ReactNode) => (
+    <div className="flex flex-col gap-2">
+      <label className="font-label-xs text-[10px] uppercase tracking-wider text-on-surface-variant font-bold flex items-center gap-1.5">
+        {icon} {label}
+      </label>
       <input
         type="text"
-        className="input"
+        className="nexus-input w-full px-4 py-3 rounded-xl text-sm"
         value={form[key] as string ?? ''}
         placeholder={placeholder}
         onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
       />
-      {hint && <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{hint}</p>}
+      <p className="text-[11px] text-on-surface-variant/80 ml-1">{hint}</p>
     </div>
   );
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4 max-w-xl">
-        {[0,1,2,3].map(i => <div key={i} className="skeleton h-16 rounded-xl" />)}
+      <div className="space-y-6 max-w-2xl animate-fade-in">
+        <div className="skeleton h-24 rounded-2xl" />
+        <div className="skeleton h-[400px] rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="page-enter flex flex-col gap-6 max-w-xl">
+    <div className="space-y-6 max-w-2xl animate-fade-in pb-10">
       <div>
-        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Settings</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Runtime config · changes take effect immediately, but restart to persist across server reboots
+        <h1 className="font-headline-lg text-xl font-bold text-on-surface">System Preferences</h1>
+        <p className="font-body-md text-on-surface-variant mt-1">
+          Runtime configuration · Changes apply instantly to active flows
         </p>
       </div>
 
-      {/* ── Business info ──────────────────────────────────────────── */}
-      <div className="card flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <Settings2 size={14} style={{ color: '#60a5fa' }} />
-          <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Business Info</h2>
+      <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+        <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <div className="space-y-1 text-sm text-amber-700 font-medium">
+          <p>These settings are stored in memory for the current session.</p>
+          <p className="text-amber-600/80">To make them permanent across server reboots, update the <code className="bg-amber-500/20 px-1.5 py-0.5 rounded font-mono text-xs">backend/.env</code> file.</p>
         </div>
-        {field('business_name',      'Business Name',   'Noofa General Stores',    'Appears in WhatsApp order messages and morning briefings')}
-        {field('business_location',  'Location',        'Palakkad, Kerala',        'City / area shown in supplier messages')}
-        {field('weather_city',       'Weather City',    'Palakkad',                'City name for Open-Meteo weather data')}
-        {field('morning_brief_time', 'Brief Time (24h)','07:00',                   'Daily briefing cron — Asia/Kolkata timezone. Restart server to update scheduler.')}
       </div>
 
-      {/* ── API key status ──────────────────────────────────────────── */}
-      {data && (
-        <div className="card flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Info size={14} style={{ color: '#60a5fa' }} />
-            <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>API Key Status</h2>
+      <div className="glass-panel p-6 rounded-2xl border border-border-glass space-y-8">
+        <div className="flex items-center gap-3 border-b border-border-glass pb-4">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+            <Building2 className="w-5 h-5" />
           </div>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            Configure keys in <code className="mono px-1 py-0.5 rounded" style={{ background: 'var(--border)', color: '#93c5fd' }}>backend/.env</code>
-          </p>
-          <ApiStatus label="Gemini (LLM + embeddings)" ok={data.gemini_configured} />
-          <ApiStatus label="Twilio (WhatsApp orders)"  ok={data.twilio_configured} />
-          <ApiStatus label="NewsAPI (hartal detection)" ok={data.newsapi_configured} />
-          <ApiStatus label="Open-Meteo (weather)"      ok={data.weather_configured} />
+          <h2 className="font-headline-sm text-lg font-bold text-on-surface">Business Identity</h2>
         </div>
-      )}
 
-      {/* ── Save button ─────────────────────────────────────────────── */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {field('business_name', 'Store Name', 'Noofa General Stores', 'Appears in WhatsApp msgs', <Building2 className="w-3 h-3" />)}
+            {field('business_location', 'Location', 'Palakkad, Kerala', 'Regional context for agents', <MapPin className="w-3 h-3" />)}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {field('weather_city', 'Weather Target', 'Palakkad', 'City for Open-Meteo forecasts', <Cloud className="w-3 h-3" />)}
+            {field('morning_brief_time', 'Brief Schedule (24h)', '07:00', 'Cron schedule (Requires restart)', <Clock className="w-3 h-3" />)}
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-panel p-6 rounded-2xl border border-border-glass space-y-6">
+        <div className="flex items-center gap-3 border-b border-border-glass pb-4">
+          <div className="w-10 h-10 rounded-xl bg-surface-container-high border border-border-glass flex items-center justify-center text-on-surface">
+            <Settings2 className="w-5 h-5" />
+          </div>
+          <h2 className="font-headline-sm text-lg font-bold text-on-surface">Integration Status</h2>
+        </div>
+
+        {data && (
+          <div className="space-y-3">
+            <ApiStatus label="Google Gemini API" ok={data.gemini_configured} icon={BrainCircuit} />
+            <ApiStatus label="Twilio Messaging" ok={data.twilio_configured} icon={Bell} />
+            <ApiStatus label="NewsAPI Service" ok={data.newsapi_configured} icon={Globe} />
+            <ApiStatus label="Open-Meteo Data" ok={data.weather_configured} icon={Cloud} />
+          </div>
+        )}
+      </div>
+
       <button
-        id="btn-save-settings"
         onClick={save}
         disabled={saving}
-        className="btn-success self-start disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full sm:w-auto px-8 py-3 rounded-xl bg-primary hover:bg-primary-fixed text-on-primary font-bold text-sm tracking-wide uppercase transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {saving
-          ? <><Loader2 size={14} className="animate-spin" /> Saving…</>
-          : <><Save size={14} /> Save Settings</>
-        }
+        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {saving ? 'Applying...' : 'Save Preferences'}
       </button>
-
-      {/* ── .env reminder ──────────────────────────────────────────── */}
-      <div className="rounded-xl px-4 py-3 flex items-start gap-2"
-        style={{ background: 'rgba(245,158,11,0.07)', border: '1px solid rgba(245,158,11,0.2)' }}>
-        <Info size={13} style={{ color: '#fbbf24', flexShrink: 0, marginTop: 2 }} />
-        <p className="text-xs" style={{ color: '#fde68a' }}>
-          These changes are in-process only. To make them permanent, also update <code className="mono">backend/.env</code> and restart the server.
-        </p>
-      </div>
     </div>
   );
 }

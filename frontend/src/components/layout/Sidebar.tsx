@@ -1,111 +1,111 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  BarChart3,
   LayoutDashboard,
-  Lightbulb,
-  MessageSquare,
-  Package,
-  Settings2,
-  ShoppingCart,
-  Sparkles,
-  Store,
+  Boxes,
   TrendingUp,
+  ShoppingCart,
   Truck,
+  Lightbulb,
+  BarChart3,
+  MessageSquare,
+  Settings as SettingsIcon,
+  Cpu,
+  RefreshCw,
   Zap,
 } from 'lucide-react';
 
 interface NavItem {
   to: string;
-  icon: React.ReactNode;
   label: string;
-  short: string;
+  icon: React.ElementType;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Today', short: 'Today' },
-  { to: '/inventory', icon: <Package size={18} />, label: 'Inventory', short: 'Stock' },
-  { to: '/orders', icon: <ShoppingCart size={18} />, label: 'Orders', short: 'Orders' },
-  { to: '/forecast', icon: <TrendingUp size={18} />, label: 'Forecast', short: 'Forecast' },
-  { to: '/suppliers', icon: <Truck size={18} />, label: 'Suppliers', short: 'Supply' },
-  { to: '/insights', icon: <Lightbulb size={18} />, label: 'Opportunities', short: 'Profit' },
-  { to: '/analytics', icon: <BarChart3 size={18} />, label: 'Analytics', short: 'Data' },
-  { to: '/chat', icon: <MessageSquare size={18} />, label: 'Ask AI', short: 'AI' },
-  { to: '/settings', icon: <Settings2 size={18} />, label: 'Settings', short: 'More' },
+  { to: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
+  { to: '/inventory',  label: 'Inventory',  icon: Boxes },
+  { to: '/forecast',   label: 'Forecast',   icon: TrendingUp },
+  { to: '/orders',     label: 'Orders',     icon: ShoppingCart },
+  { to: '/suppliers',  label: 'Suppliers',  icon: Truck },
+  { to: '/insights',   label: 'Insights',   icon: Lightbulb },
+  { to: '/analytics',  label: 'Analytics',  icon: BarChart3 },
+  { to: '/chat',       label: 'Chat',       icon: MessageSquare },
+  { to: '/settings',   label: 'Settings',   icon: SettingsIcon },
 ];
 
-function isRouteActive(pathname: string, to: string) {
-  return pathname === to || (to !== '/dashboard' && pathname.startsWith(to));
-}
-
-function NavItemLink({ item, compact = false }: { item: NavItem; compact?: boolean }) {
-  const location = useLocation();
-  const active = isRouteActive(location.pathname, item.to);
-
-  return (
-    <NavLink
-      to={item.to}
-      id={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-      className={compact ? 'mobile-nav-item' : 'side-nav-item'}
-      style={{
-        color: active ? '#ffffff' : 'rgba(255,255,255,0.68)',
-        background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
-        borderColor: active ? 'rgba(255,255,255,0.18)' : 'transparent',
-      }}
-      aria-current={active ? 'page' : undefined}
-      title={item.label}
-    >
-      <span className="side-nav-icon">{item.icon}</span>
-      <span className="side-nav-label">{compact ? item.short : item.label}</span>
-    </NavLink>
-  );
-}
-
 export default function Sidebar() {
+  const location = useLocation();
+  const [isDeploying, setIsDeploying] = React.useState(false);
+
+  const handleDeploy = () => {
+    if (isDeploying) return;
+    setIsDeploying(true);
+    setTimeout(() => setIsDeploying(false), 4000);
+  };
+
   return (
-    <>
-      <aside className="retail-sidebar" aria-label="Main navigation">
-        <div className="brand-block">
-          <div className="brand-mark">
-            <Store size={20} />
-          </div>
-          <div className="brand-copy">
-            <p>RetailWise AI</p>
-            <span>Owner command center</span>
-          </div>
+    <nav className="w-64 h-screen fixed left-0 top-0 bg-surface-glass border-r border-border-glass text-on-surface flex flex-col py-6 px-4 z-50 overflow-y-auto">
+      {/* Brand */}
+      <div className="mb-10 flex items-center gap-3 px-2">
+        <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-200 shadow-sm">
+          <Cpu className="w-5 h-5 text-primary stroke-[2px]" />
         </div>
-
-        <div className="pipeline-card">
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex items-center gap-2">
-              <span className="dot-green dot-pulse" />
-              Live agent stack
-            </span>
-            <Zap size={14} />
-          </div>
-          <p>Gemini, Prophet, inventory, suppliers and WhatsApp in one flow.</p>
+        <div>
+          <h1 className="text-lg font-bold tracking-tight text-indigo-600 uppercase">
+            Retail_OS
+          </h1>
+          <p className="text-[10px] text-slate-400 font-semibold tracking-widest uppercase mt-0.5">
+            Intelligence Layer
+          </p>
         </div>
+      </div>
 
-        <nav className="side-nav" aria-label="Page navigation">
-          {NAV_ITEMS.map((item) => (
-            <NavItemLink key={item.to} item={item} />
-          ))}
-        </nav>
+      {/* Nav Links */}
+      <ul className="flex-1 flex flex-col gap-1.5">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.to ||
+            (item.to !== '/dashboard' && location.pathname.startsWith(item.to));
+          return (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                id={`nav-${item.label.toLowerCase()}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all text-left text-sm ${
+                  isActive
+                    ? 'bg-slate-50 border-r-4 border-primary text-primary font-bold shadow-sm'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-slate-100/60 hover:translate-x-1'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-on-surface-variant'}`} />
+                <span>{item.label}</span>
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
 
-        <div className="sidebar-footer">
-          <Sparkles size={15} />
-          <div>
-            <p>Gemini only</p>
-            <span>No OpenAI or Anthropic</span>
-          </div>
-        </div>
-      </aside>
-
-      <nav className="mobile-nav" aria-label="Mobile navigation">
-        {NAV_ITEMS.slice(0, 5).map((item) => (
-          <NavItemLink key={item.to} item={item} compact />
-        ))}
-      </nav>
-    </>
+      {/* Deploy CTA */}
+      <div className="mt-auto pt-6 border-t border-border-glass">
+        <button
+          id="btn-deploy-update"
+          onClick={handleDeploy}
+          disabled={isDeploying}
+          className="w-full flex items-center justify-center gap-2 bg-primary text-white py-3 px-4 rounded-xl font-semibold text-sm tracking-wide transition-all duration-200 transform hover:scale-[1.01] hover:bg-indigo-700 shadow-md active:scale-95 disabled:opacity-50 disabled:transform-none cursor-pointer"
+        >
+          {isDeploying ? (
+            <>
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <span>Optimizing...</span>
+            </>
+          ) : (
+            <>
+              <Zap className="w-4 h-4" />
+              <span>Deploy Update</span>
+            </>
+          )}
+        </button>
+      </div>
+    </nav>
   );
 }

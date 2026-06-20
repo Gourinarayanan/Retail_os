@@ -1,130 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Send, Loader2, Sparkles, RefreshCw, Info, BookOpen,
-  User, Bot, Trash2
+  User, Bot, Trash2, Cpu, Terminal, BrainCircuit,
 } from 'lucide-react';
 import type { ChatMessage } from '../types';
 import { apiGet, apiPost } from '../api/client';
-
-// ── Message bubble ────────────────────────────────────────────────────────────
-
-function MessageBubble({ msg }: { msg: ChatMessage }) {
-  const isUser = msg.role === 'user';
-  const time   = new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-
-  const renderContent = (text: string) => {
-    const lines = text.split('\n');
-    return lines.map((line, i) => {
-      if (line.startsWith('## '))
-        return <p key={i} className="font-bold text-sm mt-2 mb-1" style={{ color: 'var(--text-primary)' }}>{line.slice(3)}</p>;
-      if (line.startsWith('### '))
-        return <p key={i} className="font-semibold text-xs uppercase tracking-wider mt-2" style={{ color: '#93c5fd' }}>{line.slice(4)}</p>;
-      if (line.startsWith('- ') || line.startsWith('* '))
-        return (
-          <div key={i} className="flex items-start gap-2">
-            <span className="mt-1.5 w-1 h-1 rounded-full shrink-0" style={{ background: '#3b82f6' }} />
-            <span>{line.slice(2)}</span>
-          </div>
-        );
-      if (line.startsWith('**') && line.endsWith('**'))
-        return <p key={i} className="font-semibold">{line.replace(/\*\*/g, '')}</p>;
-      if (!line.trim()) return <div key={i} className="h-1.5" />;
-      return <p key={i}>{line}</p>;
-    });
-  };
-
-  return (
-    <div
-      className={`flex gap-3 stream-item ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
-    >
-      {/* Avatar */}
-      <div
-        className="flex h-8 w-8 items-center justify-center rounded-full shrink-0 mt-1"
-        style={{
-          background: isUser
-            ? 'linear-gradient(135deg,#3b82f6,#8b5cf6)'
-            : 'rgba(139,92,246,0.15)',
-          border: isUser ? 'none' : '1px solid rgba(139,92,246,0.3)',
-        }}
-      >
-        {isUser
-          ? <User size={14} className="text-white" />
-          : <Sparkles size={14} style={{ color: '#c4b5fd' }} />
-        }
-      </div>
-
-      {/* Bubble */}
-      <div
-        className="flex flex-col gap-1.5 max-w-[75%]"
-        style={{ alignItems: isUser ? 'flex-end' : 'flex-start' }}
-      >
-        <div
-          className="rounded-2xl px-4 py-3 text-sm leading-relaxed flex flex-col gap-0.5"
-          style={{
-            background: isUser
-              ? 'rgba(59,130,246,0.2)'
-              : 'var(--bg-card)',
-            border: isUser
-              ? '1px solid rgba(59,130,246,0.3)'
-              : '1px solid var(--border)',
-            color: 'var(--text-secondary)',
-            borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-          }}
-        >
-          {renderContent(msg.content)}
-        </div>
-
-        {/* Footer: time + RAG source */}
-        <div className={`flex items-center gap-2 ${isUser ? 'flex-row-reverse' : ''}`}>
-          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{time}</span>
-          {!isUser && msg.context_used && (
-            <div
-              className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(139,92,246,0.08)', color: '#c4b5fd', border: '1px solid rgba(139,92,246,0.15)' }}
-              title={`RAG context: ${msg.context_used}`}
-            >
-              <BookOpen size={9} />
-              <span className="truncate max-w-[180px]">{msg.context_used}</span>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Typing indicator ──────────────────────────────────────────────────────────
-
-function TypingIndicator() {
-  return (
-    <div className="flex gap-3 stream-item">
-      <div className="flex h-8 w-8 items-center justify-center rounded-full shrink-0"
-        style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)' }}>
-        <Sparkles size={14} style={{ color: '#c4b5fd' }} />
-      </div>
-      <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '18px 18px 18px 4px' }}>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full"
-            style={{ background: '#8b5cf6', animation: `pulse-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Suggestion chips ──────────────────────────────────────────────────────────
-
-const SUGGESTIONS = [
-  'What should I stock before Onam?',
-  'Which supplier is best for spices?',
-  'How should I handle a hartal tomorrow?',
-  'Which products are near expiry?',
-  'What are today\'s critical stock alerts?',
-  'How do I maximise profit this festival season?',
-];
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -134,28 +14,24 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
 
-  // ── Load history ─────────────────────────────────────────────────────
   const loadHistory = useCallback(async () => {
     setFetching(true);
     try {
       const data = await apiGet<ChatMessage[]>('/chat/history');
       setMessages(data);
-    } catch {/* silent */} finally { setFetching(false); }
+    } catch { } finally { setFetching(false); }
   }, []);
 
   useEffect(() => { loadHistory(); }, [loadHistory]);
 
-  // ── Auto-scroll ──────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // ── Send message ─────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    // Optimistic user message
     const optimistic: ChatMessage = {
       id: Date.now(),
       role: 'user',
@@ -168,7 +44,6 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      // Backend: POST /api/chat { content: str } → { reply: str, sources: str }
       const result = await apiPost<{ reply: string; sources: string }>('/chat', { content: trimmed });
       const assistantMsg: ChatMessage = {
         id: Date.now() + 1,
@@ -195,13 +70,11 @@ export default function ChatPage() {
     }
   }, [loading]);
 
-  // ── Clear history (client-side only — no backend DELETE endpoint) ───────────
   const clearHistory = useCallback(() => {
     if (!window.confirm('Clear chat view? (History stays in DB)')) return;
     setMessages([]);
   }, []);
 
-  // ── Keyboard handler ─────────────────────────────────────────────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -209,161 +82,157 @@ export default function ChatPage() {
     }
   };
 
-  return (
-    <div className="page-enter flex flex-col h-full" style={{ height: 'calc(100vh - 56px - 48px)' }}>
+  const PROMPT_SUGGESTIONS = [
+    { label: "Run Stock Audit", text: "Show me low stock items. Which supplier has the longest lead time?" },
+    { label: "Compare Suppliers", text: "Rank our active suppliers by reliability score. Who should we use for pantry staples?" },
+    { label: "Check Security", text: "Is End-to-End Encryption active? Double-check security validation status." }
+  ];
 
-      {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>AI Assistant</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="dot-green dot-pulse" />
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Gemini Flash · RAG-powered · knows your store's context
-            </p>
+  return (
+    <div className="space-y-6 animate-fade-in flex flex-col h-[calc(100vh-140px)] min-h-[500px]">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <Terminal className="w-5 h-5 text-primary" />
+          <div>
+            <h3 className="font-headline-lg text-lg text-on-surface">Nexus copilot console</h3>
+            <p className="font-label-xs text-xs text-on-surface-variant uppercase mt-0.5">Dual-Agent Chat Reasoning Engine</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={loadHistory} className="btn-ghost p-2" title="Refresh history">
-            <RefreshCw size={14} />
+          <button onClick={loadHistory} className="p-2 border border-border-glass rounded-lg text-on-surface-variant hover:text-primary hover:border-primary transition-all">
+            <RefreshCw className="w-4 h-4" />
           </button>
-          <button onClick={clearHistory} disabled={!messages.length}
-            className="btn-ghost p-2 disabled:opacity-40" title="Clear chat">
-            <Trash2 size={14} style={{ color: '#f87171' }} />
+          <button
+            onClick={clearHistory}
+            disabled={!messages.length}
+            className="p-2 px-3 rounded-md bg-surface-container-high border border-border-glass font-label-md text-xs uppercase flex items-center gap-1.5 hover:bg-error/15 hover:text-error transition-all disabled:opacity-40"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Clear logs</span>
           </button>
         </div>
       </div>
 
-      {/* ── Chat window ─────────────────────────────────────────────── */}
-      <div
-        className="flex-1 overflow-y-auto scroll-panel rounded-xl p-4 flex flex-col gap-4 mb-4"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', minHeight: 0 }}
-      >
-        {/* Empty state */}
-        {!fetching && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full gap-5 py-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl"
-              style={{ background: 'linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.15))', border: '1px solid rgba(139,92,246,0.2)' }}>
-              <Bot size={28} style={{ color: '#c4b5fd' }} />
-            </div>
-            <div className="text-center">
-              <p className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-                Good morning! I'm your RetailWise AI
-              </p>
-              <p className="text-sm mt-1 max-w-sm" style={{ color: 'var(--text-muted)' }}>
-                Ask me about stock levels, suppliers, festival demand, hartal planning, or any retail decision.
-              </p>
-            </div>
+      {/* Main chat layout */}
+      <div className="flex-1 min-h-0 glass-panel rounded-xl border border-border-glass flex flex-col justify-between overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-4 opacity-5 select-none pointer-events-none">
+          <BrainCircuit className="w-96 h-96 text-primary" />
+        </div>
 
-            {/* Suggestion chips */}
-            <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => sendMessage(s)}
-                  className="text-xs px-3 py-2 rounded-xl transition-all"
-                  style={{
-                    background: 'rgba(59,130,246,0.08)',
-                    border: '1px solid rgba(59,130,246,0.2)',
-                    color: '#93c5fd',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.15)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(59,130,246,0.08)')}
-                >
-                  {s}
-                </button>
-              ))}
+        {/* Conversation Logs */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 relative z-10">
+          {fetching && messages.length === 0 && (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
             </div>
-          </div>
-        )}
-
-        {/* Fetching skeleton */}
-        {fetching && (
-          <div className="flex flex-col gap-4">
-            {[0, 1].map((i) => (
-              <div key={i} className={`flex gap-3 ${i % 2 === 1 ? 'flex-row-reverse' : ''}`}>
-                <div className="skeleton w-8 h-8 rounded-full shrink-0" />
-                <div className="skeleton rounded-2xl h-12 flex-1 max-w-[60%]" />
+          )}
+          
+          {!fetching && messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Cpu className="w-8 h-8 text-primary" />
               </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-on-surface">Terminal Ready</p>
+                <p className="text-xs text-on-surface-variant mt-1">Awaiting context execution commands.</p>
+              </div>
+            </div>
+          )}
+
+          {messages.map((m, idx) => {
+            const isModel = m.role === 'assistant';
+            const time = new Date(m.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            return (
+              <div
+                key={m.id || idx}
+                className={`flex gap-3 max-w-[85%] ${isModel ? 'mr-auto' : 'ml-auto flex-row-reverse'}`}
+              >
+                <div className={`w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border border-border-glass ${
+                  isModel ? 'bg-primary/20 text-primary shadow-sm' : 'bg-surface-container-high text-on-surface-variant'
+                }`}>
+                  {isModel ? <Cpu className="w-4 h-4" /> : <span className="font-bold text-xs uppercase">US</span>}
+                </div>
+                <div className={`p-4 rounded-xl border ${
+                  isModel
+                    ? 'bg-surface-container-low border-border-glass/40 text-on-surface-variant'
+                    : 'bg-primary/10 border-primary/40 text-on-surface'
+                }`}>
+                  <div className="flex justify-between items-center mb-1">
+                    <div className="text-xs text-on-surface-variant/50 font-label-xs uppercase tracking-wider">
+                      {isModel ? "copilot output" : "executor input"} • {time}
+                    </div>
+                  </div>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-on-surface">
+                    {m.content}
+                  </div>
+                  {isModel && m.context_used && (
+                    <div className="mt-2 text-[10px] text-primary/80 flex items-center gap-1 bg-primary/5 px-2 py-1 rounded w-fit border border-primary/10">
+                      <BookOpen className="w-3 h-3" />
+                      RAG Sources: {m.context_used}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          
+          {loading && (
+            <div className="flex gap-3 max-w-[85%] mr-auto">
+              <div className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center border border-border-glass bg-primary/20 text-primary">
+                <Cpu className="w-4 h-4" />
+              </div>
+              <div className="p-4 rounded-xl border bg-surface-container-low border-border-glass/40 text-on-surface-variant">
+                <div className="flex items-center gap-2 font-label-md text-xs tracking-wider animate-pulse text-primary">
+                  <Sparkles className="w-3.5 h-3.5 animate-spin" />
+                  <span>Computing analytical response vectors...</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Textbox segment */}
+        <div className="p-4 bg-surface-container/60 border-t border-border-glass relative z-10 shrink-0">
+          <div className="flex flex-wrap gap-2.5 mb-3.5">
+            {PROMPT_SUGGESTIONS.map((pr, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(pr.text)}
+                disabled={loading}
+                className="px-3 py-1.5 rounded-full border border-border-glass text-[10px] font-label-xs uppercase tracking-wider text-on-surface-variant/80 hover:border-primary hover:text-primary bg-surface-container-low transition-all"
+              >
+                {pr.label}
+              </button>
             ))}
           </div>
-        )}
 
-        {/* Messages */}
-        {!fetching && messages.map((msg) => (
-          <MessageBubble key={msg.id} msg={msg} />
-        ))}
-
-        {/* Typing indicator */}
-        {loading && <TypingIndicator />}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* ── Suggestion chips (contextual, when has messages) ─────── */}
-      {messages.length > 0 && !loading && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1 shrink-0">
-          {SUGGESTIONS.slice(0, 4).map((s) => (
-            <button
-              key={s}
-              onClick={() => sendMessage(s)}
-              className="text-[11px] px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0 transition-all"
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-secondary)',
+          <div className="flex gap-2">
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(59,130,246,0.4)')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              placeholder="Query safety bounds, re-order weights, or system metadata..."
+              className="nexus-input flex-1 px-4 py-2.5 rounded-lg text-sm resize-none overflow-hidden h-10"
+            />
+            <button
+              onClick={() => sendMessage(input)}
+              disabled={loading || !input.trim()}
+              className="px-4 py-2.5 bg-primary text-on-primary rounded-lg hover:bg-primary-fixed transition-all disabled:opacity-30 flex items-center justify-center"
             >
-              {s}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
-          ))}
+          </div>
         </div>
-      )}
-
-      {/* ── Input bar ───────────────────────────────────────────────── */}
-      <div
-        className="flex items-end gap-3 rounded-xl px-4 py-3 shrink-0"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-bright)' }}
-      >
-        <textarea
-          ref={inputRef}
-          id="chat-input"
-          rows={1}
-          className="flex-1 resize-none bg-transparent outline-none text-sm leading-relaxed"
-          style={{ color: 'var(--text-primary)', maxHeight: 120 }}
-          placeholder="Ask about stock, suppliers, festivals, hartal… (Enter to send)"
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            // Auto-grow
-            e.target.style.height = 'auto';
-            e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-          }}
-          onKeyDown={handleKeyDown}
-          disabled={loading}
-          aria-label="Chat message input"
-        />
-        <button
-          id="btn-send-chat"
-          onClick={() => sendMessage(input)}
-          disabled={loading || !input.trim()}
-          className="btn-primary shrink-0 h-9 w-9 p-0 flex items-center justify-center rounded-xl disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-          aria-label="Send message"
-        >
-          {loading
-            ? <Loader2 size={15} className="animate-spin" />
-            : <Send size={15} />
-          }
-        </button>
       </div>
-
-      {/* Info footnote */}
-      <p className="text-[10px] text-center mt-2 shrink-0" style={{ color: 'var(--text-muted)' }}>
-        <Info size={9} className="inline mr-1" />
-        Answers draw from your live inventory, today's briefing, and the RAG knowledge base.
-      </p>
     </div>
   );
 }

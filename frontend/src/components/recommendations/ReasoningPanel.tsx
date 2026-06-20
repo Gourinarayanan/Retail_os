@@ -2,12 +2,10 @@ import React from 'react';
 import { Brain, ChevronRight, AlertTriangle, TrendingUp, Package } from 'lucide-react';
 
 interface ReasoningPanelProps {
-  reasoning: string;   // full ai_reasoning text
-  reasons?:  string[]; // optional structured reasons array
+  reasoning: string;
+  reasons?:  string[];
   orderId:   number;
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function classifyLine(line: string): 'prophet' | 'scenario' | 'stock' | 'cycle' | 'expiry' | 'default' {
   const l = line.toLowerCase();
@@ -24,79 +22,58 @@ function classifyLine(line: string): 'prophet' | 'scenario' | 'stock' | 'cycle' 
 }
 
 const LINE_ICONS: Record<string, React.ReactNode> = {
-  prophet:  <TrendingUp  size={11} style={{ color: '#34d399', flexShrink: 0 }} />,
-  scenario: <AlertTriangle size={11} style={{ color: '#fbbf24', flexShrink: 0 }} />,
-  stock:    <Package     size={11} style={{ color: '#60a5fa', flexShrink: 0 }} />,
-  cycle:    <ChevronRight size={11} style={{ color: '#c4b5fd', flexShrink: 0 }} />,
-  expiry:   <AlertTriangle size={11} style={{ color: '#f87171', flexShrink: 0 }} />,
-  default:  <ChevronRight size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />,
+  prophet:  <TrendingUp  className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />,
+  scenario: <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />,
+  stock:    <Package     className="w-3.5 h-3.5 text-sky-500 shrink-0 mt-0.5" />,
+  cycle:    <ChevronRight className="w-3.5 h-3.5 text-violet-500 shrink-0 mt-0.5" />,
+  expiry:   <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />,
+  default:  <ChevronRight className="w-3.5 h-3.5 text-on-surface-variant shrink-0 mt-0.5" />,
 };
 
 const LINE_COLORS: Record<string, string> = {
-  prophet:  '#86efac',
-  scenario: '#fde68a',
-  stock:    '#bfdbfe',
-  cycle:    '#ddd6fe',
-  expiry:   '#fca5a5',
-  default:  'var(--text-secondary)',
+  prophet:  'text-emerald-700',
+  scenario: 'text-amber-700',
+  stock:    'text-sky-700',
+  cycle:    'text-violet-700',
+  expiry:   'text-red-700',
+  default:  'text-on-surface-variant',
 };
 
-// ── Main Component ────────────────────────────────────────────────────────────
-
 export default function ReasoningPanel({ reasoning, reasons, orderId }: ReasoningPanelProps) {
-  // Split reasoning into lines, filter blanks
   const lines = reasoning
     .split(/\n|·|•/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 4);
+    .map(l => l.trim())
+    .filter(l => l.length > 4);
 
   return (
-    <div
-      id={`reasoning-panel-${orderId}`}
-      className="flex flex-col gap-1.5"
-    >
-      {/* Header — always visible, full content below (no collapse per spec) */}
-      <div className="flex items-center gap-1.5 mb-1">
-        <Brain size={12} style={{ color: '#c4b5fd' }} />
-        <span
-          className="text-[10px] font-semibold uppercase tracking-wider"
-          style={{ color: '#c4b5fd' }}
-        >
-          AI Reasoning
+    <div id={`reasoning-panel-${orderId}`} className="flex flex-col gap-2 h-full">
+      <div className="flex items-center gap-1.5 px-1">
+        <Brain className="w-3.5 h-3.5 text-primary" />
+        <span className="font-label-xs text-[10px] uppercase tracking-wider text-primary font-bold">
+          Copilot Reasoning
         </span>
       </div>
 
-      {/* Full reasoning text — NOT collapsed */}
-      <div
-        className="rounded-lg px-3 py-3 flex flex-col gap-1.5"
-        style={{
-          background: 'rgba(139,92,246,0.05)',
-          border: '1px solid rgba(139,92,246,0.15)',
-        }}
-      >
+      <div className="flex-1 rounded-xl px-4 py-3 bg-surface-container-low border border-border-glass flex flex-col gap-2">
         {lines.map((line, i) => {
           const type = classifyLine(line);
           return (
-            <div key={i} className="flex items-start gap-2">
+            <div key={i} className="flex items-start gap-2.5">
               {LINE_ICONS[type]}
-              <span
-                className="text-[11px] leading-snug"
-                style={{ color: LINE_COLORS[type] }}
-              >
+              <span className={`text-[11.5px] leading-snug font-medium ${LINE_COLORS[type]}`}>
                 {line}
               </span>
             </div>
           );
         })}
 
-        {/* Extra structured reasons if provided */}
         {reasons && reasons.length > 0 && (
           <>
-            <div className="divider my-1" />
+            <div className="w-full h-px bg-border-glass my-1" />
             {reasons.map((r, i) => (
-              <div key={`r-${i}`} className="flex items-start gap-2">
-                <ChevronRight size={11} style={{ color: '#60a5fa', flexShrink: 0 }} />
-                <span className="text-[11px] leading-snug" style={{ color: '#bfdbfe' }}>
+              <div key={`r-${i}`} className="flex items-start gap-2.5">
+                <ChevronRight className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                <span className="text-[11.5px] leading-snug font-medium text-primary">
                   {r}
                 </span>
               </div>
