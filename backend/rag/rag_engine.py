@@ -36,7 +36,10 @@ _collection = None
 _index_ready = False
 
 # We'll use Gemini for embeddings to save RAM on the Free Tier
-_embedding_fn = embedding_functions.GoogleGenerativeAiEmbeddingFunction(api_key=os.environ.get("GEMINI_API_KEY", ""))
+_embedding_fn = embedding_functions.GoogleGenerativeAiEmbeddingFunction(
+    api_key=os.environ.get("GEMINI_API_KEY", ""),
+    model_name="models/text-embedding-004"
+)
 
 # ── Corpus loader ─────────────────────────────────────────────────────────────
 
