@@ -35,8 +35,8 @@ _chroma_client = None
 _collection = None
 _index_ready = False
 
-# We'll use the default ChromaDB embedding function (all-MiniLM-L6-v2)
-_embedding_fn = embedding_functions.DefaultEmbeddingFunction()
+# We'll use Gemini for embeddings to save RAM on the Free Tier
+_embedding_fn = embedding_functions.GoogleGenerativeAiEmbeddingFunction(api_key=os.environ.get("GEMINI_API_KEY", ""))
 
 # ── Corpus loader ─────────────────────────────────────────────────────────────
 
