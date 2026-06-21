@@ -518,8 +518,8 @@ Posts:
 {posts_text}"""
 
     try:
-        response = _gemini_model.generate_content(prompt)
-        text = response.text.strip().lower()
+        text = generate(prompt)
+        text = text.strip().lower()
         if text in ("positive", "neutral", "negative"):
             return text
         return "neutral"
