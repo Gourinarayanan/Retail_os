@@ -16,21 +16,16 @@ from datetime import date
 
 from dotenv import load_dotenv
 
+from routers.settings import _get
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-_ACCOUNT_SID: str = os.environ.get("TWILIO_ACCOUNT_SID", "")
-_AUTH_TOKEN: str = os.environ.get("TWILIO_AUTH_TOKEN", "")
-_FROM_NUMBER: str = os.environ.get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886")
-_OWNER_NUMBER: str = os.environ.get("OWNER_WHATSAPP_NUMBER", "")
-_BUSINESS_NAME: str = os.environ.get("BUSINESS_NAME", "RetailWise Store")
-_BUSINESS_LOCATION: str = os.environ.get("BUSINESS_LOCATION", "Kerala")
-
 
 def _is_configured() -> bool:
     """Return True only if all required Twilio env vars are present."""
-    return bool(_ACCOUNT_SID and _AUTH_TOKEN and _OWNER_NUMBER)
+    return bool(_get("TWILIO_ACCOUNT_SID") and _get("TWILIO_AUTH_TOKEN"))
 
 
 def _build_message(order: dict, supplier: dict) -> str:
@@ -65,7 +60,7 @@ def _build_message(order: dict, supplier: dict) -> str:
         f"• *Agreed price:* ₹{price_per_unit}/{unit}\n"
         f"• *Total:* ₹{round(total_cost):,}\n"
         f"\n"
-        f"*From:* {_BUSINESS_NAME}, {_BUSINESS_LOCATION}\n"
+        f"*From:* {_get('BUSINESS_NAME', 'RetailWise Store')}, {_get('BUSINESS_LOCATION', 'Kerala')}\n"
         f"*Order Ref:* {order_ref}\n"
         f"\n"
         f"Kindly confirm receipt of this order. 🙏\n"
@@ -119,10 +114,10 @@ def send_whatsapp_order(order: dict, supplier: dict) -> bool:
     try:
         from twilio.rest import Client  # lazy import — only when configured
 
-        client = Client(_ACCOUNT_SID, _AUTH_TOKEN)
+        client = Client(_get("TWILIO_ACCOUNT_SID"), _get("TWILIO_AUTH_TOKEN"))
 
         twilio_message = client.messages.create(
-            from_=_FROM_NUMBER,
+            from_=_get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886"),
             to=to_number,
             body=message_body,
         )
@@ -160,14 +155,15 @@ def send_brief_to_owner(brief_text: str) -> bool:
         logger.info("[whatsapp] Twilio not configured — simulating owner brief send.")
         return True
 
-    if not _OWNER_NUMBER:
+    owner_num = _get("OWNER_WHATSAPP_NUMBER")
+    if not owner_num:
         logger.warning("[whatsapp] OWNER_WHATSAPP_NUMBER not set — skipping owner brief.")
         return False
 
     to_number = (
-        _OWNER_NUMBER
-        if _OWNER_NUMBER.startswith("whatsapp:")
-        else f"whatsapp:{_OWNER_NUMBER}"
+        owner_num
+        if owner_num.startswith("whatsapp:")
+        else f"whatsapp:{owner_num}"
     )
 
     # Trim to WhatsApp's 1600 character limit with a note
@@ -179,9 +175,9 @@ def send_brief_to_owner(brief_text: str) -> bool:
     try:
         from twilio.rest import Client
 
-        client = Client(_ACCOUNT_SID, _AUTH_TOKEN)
+        client = Client(_get("TWILIO_ACCOUNT_SID"), _get("TWILIO_AUTH_TOKEN"))
         twilio_message = client.messages.create(
-            from_=_FROM_NUMBER,
+            from_=_get("TWILIO_WHATSAPP_FROM", "whatsapp:+14155238886"),
             to=to_number,
             body=body,
         )

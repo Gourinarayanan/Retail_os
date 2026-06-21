@@ -74,30 +74,14 @@ export default function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) 
       .then((data) => setAlerts(data))
       .catch(() => undefined);
 
-    // 3. Geolocation
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
-            const data = await res.json();
-            if (data && data.address) {
-              const city = data.address.city || data.address.town || data.address.village || data.address.county;
-              const state = data.address.state;
-              if (city && state) {
-                setLocationName(`${city}, ${state}`.toUpperCase());
-              }
-            }
-          } catch (e) {
-            console.error("Geocoding failed", e);
-          }
-        },
-        (error) => {
-          console.warn("Geolocation denied or failed", error);
+    // 3. Fetch Location from Settings
+    apiGet<{ weather_city: string }>('/settings')
+      .then((data) => {
+        if (data && data.weather_city) {
+          setLocationName(data.weather_city.toUpperCase());
         }
-      );
-    }
+      })
+      .catch(() => undefined);
   }, []);
 
   // Close notifications if clicked outside
@@ -140,18 +124,6 @@ export default function TopBar({ onMenuToggle, isMobileMenuOpen }: TopBarProps) 
       </div>
 
       <div className="flex items-center gap-3 md:gap-5">
-        {/* Search */}
-        <div className="relative hidden lg:block group">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" />
-          <input
-            id="g-search-input"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search parameters..."
-            className="nexus-input w-60 pl-10 pr-4 py-1.5 rounded-full text-sm font-medium placeholder-slate-400 shadow-sm"
-          />
-        </div>
 
         {/* Context pills */}
         {ctx?.hartal_today && (

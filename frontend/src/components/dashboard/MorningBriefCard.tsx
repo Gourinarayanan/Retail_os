@@ -48,15 +48,17 @@ function BriefText({ text }: { text: string }) {
 
 interface MorningBriefCardProps {
   briefing:  Briefing | null;
+  liveAlerts: any[];
+  liveOrders: Order[];
   loading:   boolean;
   onRefresh: () => void;
 }
 
-export default function MorningBriefCard({ briefing, loading, onRefresh }: MorningBriefCardProps) {
+export default function MorningBriefCard({ briefing, liveAlerts, liveOrders, loading, onRefresh }: MorningBriefCardProps) {
   const navigate = useNavigate();
 
-  const alerts = briefing?.inventory_alerts ?? [];
-  const orders = briefing?.orders ?? [];
+  const alerts = liveAlerts;
+  const orders = liveOrders;
   const outOfStock = alerts.filter(a => a.stock_status === 'out_of_stock').length;
   const criticalCount = alerts.filter(a => a.stock_status === 'critical' || a.stock_status === 'out_of_stock').length;
   const nearExpiry = alerts.filter(a => a.days_remaining != null && a.days_remaining <= 7).length;

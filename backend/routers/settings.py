@@ -28,6 +28,9 @@ class SettingsOut(BaseModel):
     twilio_configured:  bool
     newsapi_configured: bool
     weather_configured: bool
+    owner_whatsapp_number: str
+    twilio_account_sid: str
+    twilio_auth_token: str
 
 
 class SettingsUpdate(BaseModel):
@@ -35,6 +38,9 @@ class SettingsUpdate(BaseModel):
     business_location:  str | None = None
     weather_city:       str | None = None
     morning_brief_time: str | None = None
+    owner_whatsapp_number: str | None = None
+    twilio_account_sid: str | None = None
+    twilio_auth_token:  str | None = None
 
 
 # ── Runtime mutable store (in-process only; survives until restart) ───────────
@@ -65,6 +71,9 @@ def get_settings():
         twilio_configured  = bool(_get("TWILIO_ACCOUNT_SID") and _get("TWILIO_AUTH_TOKEN")),
         newsapi_configured = bool(_get("NEWS_API_KEY")),
         weather_configured = True,   # Open-Meteo needs no key
+        owner_whatsapp_number = _get("OWNER_WHATSAPP_NUMBER", ""),
+        twilio_account_sid    = _get("TWILIO_ACCOUNT_SID", ""),
+        twilio_auth_token     = _get("TWILIO_AUTH_TOKEN", ""),
     )
 
 
@@ -91,6 +100,18 @@ def update_settings(body: SettingsUpdate):
     if body.morning_brief_time is not None:
         _MUTABLE["MORNING_BRIEF_TIME"] = body.morning_brief_time
         dotenv.set_key(env_path, "MORNING_BRIEF_TIME", body.morning_brief_time)
+
+    if body.owner_whatsapp_number is not None:
+        _MUTABLE["OWNER_WHATSAPP_NUMBER"] = body.owner_whatsapp_number
+        dotenv.set_key(env_path, "OWNER_WHATSAPP_NUMBER", body.owner_whatsapp_number)
+
+    if body.twilio_account_sid is not None:
+        _MUTABLE["TWILIO_ACCOUNT_SID"] = body.twilio_account_sid
+        dotenv.set_key(env_path, "TWILIO_ACCOUNT_SID", body.twilio_account_sid)
+
+    if body.twilio_auth_token is not None:
+        _MUTABLE["TWILIO_AUTH_TOKEN"] = body.twilio_auth_token
+        dotenv.set_key(env_path, "TWILIO_AUTH_TOKEN", body.twilio_auth_token)
 
     logger.info("[settings] Persisted to .env: %s", {k: v for k, v in body.model_dump().items() if v is not None})
     return get_settings()

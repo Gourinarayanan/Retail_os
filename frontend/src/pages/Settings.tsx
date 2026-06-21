@@ -12,6 +12,9 @@ interface SettingsData {
   twilio_configured:  boolean;
   newsapi_configured: boolean;
   weather_configured: boolean;
+  owner_whatsapp_number?: string;
+  twilio_account_sid?: string;
+  twilio_auth_token?: string;
 }
 
 function ApiStatus({ label, ok, icon: Icon }: { label: string; ok: boolean; icon: React.ElementType }) {
@@ -58,6 +61,9 @@ export default function SettingsPage() {
         business_location:  s.business_location,
         weather_city:       s.weather_city,
         morning_brief_time: s.morning_brief_time,
+        owner_whatsapp_number: s.owner_whatsapp_number || '',
+        twilio_account_sid: s.twilio_account_sid || '',
+        twilio_auth_token:  s.twilio_auth_token || '',
       });
     } catch { } finally { setLoading(false); }
   }, []);
@@ -76,13 +82,13 @@ export default function SettingsPage() {
     } catch { } finally { setSaving(false); }
   };
 
-  const field = (key: keyof typeof form, label: string, placeholder: string, hint: string, icon: React.ReactNode) => (
+  const field = (key: keyof typeof form, label: string, placeholder: string, hint: string, icon: React.ReactNode, type = 'text') => (
     <div className="flex flex-col gap-2">
       <label className="font-label-xs text-[10px] uppercase tracking-wider text-on-surface-variant font-bold flex items-center gap-1.5">
         {icon} {label}
       </label>
       <input
-        type="text"
+        type={type}
         className="nexus-input w-full px-4 py-3 rounded-xl text-sm"
         value={form[key] as string ?? ''}
         placeholder={placeholder}
@@ -128,6 +134,30 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {field('weather_city', 'Weather Target', 'Palakkad', 'City for Open-Meteo forecasts', <Cloud className="w-3 h-3" />)}
             {field('morning_brief_time', 'Brief Schedule (24h)', '07:00', 'Cron schedule (Requires restart)', <Clock className="w-3 h-3" />)}
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-panel p-6 rounded-2xl border border-border-glass space-y-8 mt-6">
+        <div className="flex flex-col gap-1 border-b border-border-glass pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
+              <Bell className="w-5 h-5" />
+            </div>
+            <h2 className="font-headline-sm text-lg font-bold text-on-surface">WhatsApp & Twilio</h2>
+          </div>
+          <p className="text-xs text-on-surface-variant ml-14">
+            Twilio Sandbox requires orders to be sent <strong>from their official number</strong>. You can configure your own number below to <strong>receive</strong> the Morning Briefs.
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {field('owner_whatsapp_number', 'Owner WhatsApp Number', 'whatsapp:+919876543210', 'Number to receive morning briefs (Format: whatsapp:+YOUR_NUMBER)', <Bell className="w-3 h-3" />)}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {field('twilio_account_sid', 'Twilio Account SID', 'AC123...', 'Find this in your Twilio Sandbox console', <Cloud className="w-3 h-3" />, 'password')}
+            {field('twilio_auth_token', 'Twilio Auth Token', '••••••••', 'Find this in your Twilio Sandbox console', <Cloud className="w-3 h-3" />, 'password')}
           </div>
         </div>
       </div>

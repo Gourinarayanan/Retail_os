@@ -4,13 +4,15 @@ import {
   CircleAlert, TrendingUp, DollarSign, Truck, Activity,
 } from 'lucide-react';
 import { apiGet } from '../api/client';
-import type { Briefing } from '../types';
+import type { Briefing, Order } from '../types';
 import AgentFlowVisualiser from '../components/dashboard/AgentFlowVisualiser';
 import ContextCards from '../components/dashboard/ContextCards';
 import MorningBriefCard from '../components/dashboard/MorningBriefCard';
 
 export default function DashboardPage() {
   const [briefing, setBriefing] = useState<Briefing | null>(null);
+  const [liveOrders, setLiveOrders] = useState<Order[]>([]);
+  const [liveAlerts, setLiveAlerts] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
 
@@ -18,14 +20,19 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiGet<Briefing>('/briefing/today');
-      setBriefing(data);
+      const [bData, oData, aData] = await Promise.all([
+        apiGet<Briefing>('/briefing/today').catch(err => {
+          if (err?.response?.status === 404) return null;
+          throw err;
+        }),
+        apiGet<Order[]>('/orders/pending').catch(() => []),
+        apiGet<any[]>('/inventory/alerts').catch(() => [])
+      ]);
+      setBriefing(bData);
+      setLiveOrders(oData);
+      setLiveAlerts(aData);
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setBriefing(null);
-      } else {
-        setError('Could not load today workspace. Check that the backend is running.');
-      }
+      setError('Could not load today workspace. Check that the backend is running.');
     } finally {
       setLoading(false);
     }
@@ -38,15 +45,15 @@ export default function DashboardPage() {
   }, [fetchBriefing]);
 
   const metrics = useMemo(() => {
-    const alerts = briefing?.inventory_alerts ?? [];
-    const orders = briefing?.orders ?? [];
+    const alerts = liveAlerts;
+    const orders = liveOrders;
     const opps   = briefing?.opportunities ?? [];
     const critical   = alerts.filter(i => i.stock_status === 'critical' || i.stock_status === 'out_of_stock').length;
     const pending    = orders.filter(o => o.status === 'pending_approval').length;
     const orderValue = orders.reduce((s, o) => s + (o.total_cost || 0), 0);
     const profit     = opps.reduce((s, op) => s + (op.extra_profit_est || 0), 0);
     return { critical, pending, orderValue, profit };
-  }, [briefing]);
+  }, [briefing, liveAlerts, liveOrders]);
 
   const stats = [
     {
@@ -109,7 +116,7 @@ export default function DashboardPage() {
       )}
 
       {/* Morning Brief Banner */}
-      <MorningBriefCard briefing={briefing} loading={loading} onRefresh={fetchBriefing} />
+      <MorningBriefCard briefing={briefing} liveAlerts={liveAlerts} liveOrders={liveOrders} loading={loading} onRefresh={fetchBriefing} />
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

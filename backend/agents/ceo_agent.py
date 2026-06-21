@@ -113,6 +113,10 @@ async def run_briefing_agent(state: RetailWiseState) -> RetailWiseState:
             db.add(briefing_row)
 
         # ── Persist drafted orders to the Order table ─────────────────────
+        # Wipe old unmodified pending orders so we don't duplicate them on re-runs
+        db.query(Order).filter(Order.status == "pending_approval", Order.owner_modified == False).delete()
+        db.commit()
+
         for draft in state.get("orders_draft", []):
             if not draft.get("supplier_id") or not draft.get("price_per_unit"):
                 logger.warning(

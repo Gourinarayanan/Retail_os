@@ -107,14 +107,15 @@ def _should_order(
     """
     is_critical = alert in ("out_of_stock", "critical")
 
+    if is_critical:
+        return True, "emergency"
+
     if product.order_cycle == "daily":
         return True, "daily"
 
     if product.order_cycle == "weekly":
         if today_weekday == product.order_day:
             return True, "weekly"
-        if is_critical:
-            return True, "emergency"
         return False, ""
 
     if product.order_cycle == "monthly":
@@ -123,13 +124,8 @@ def _should_order(
                 return True, "monthly"
         except (ValueError, TypeError):
             pass
-        if is_critical:
-            return True, "emergency"
         return False, ""
 
-    # Unknown cycle — emergency only
-    if is_critical:
-        return True, "emergency"
     return False, ""
 
 
