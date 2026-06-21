@@ -420,9 +420,9 @@ SCENARIO_RULES: list[dict] = [
         "trigger": lambda ctx: ctx.get("viral_trend", False),
         "urgency": "CRITICAL",
         "category_impacts": {
-            "snacks": {"multiplier": 5.00, "reason": "Sudden 5x demand explosion due to social media."},
+            "snacks": {"multiplier": 1.50, "reason": "Demand increase due to social media trend."},
         },
-        "action": "Fast procurement mode! Secure stock before suppliers run out.",
+        "action": "Procurement mode! Secure stock before suppliers run out.",
         "supply_warning": "High risk of regional stockouts.",
     },
     {

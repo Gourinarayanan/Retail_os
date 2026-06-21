@@ -189,7 +189,7 @@ async def run_context_agent(state: RetailWiseState) -> RetailWiseState:
         "inflation_high": market_data.get("inflation_high", False),
         "fuel_price_hike": market_data.get("fuel_price_hike", False),
         "competitor_discount": market_data.get("competitor_discount", False),
-        "viral_trend": market_data.get("viral_trend", False),
+        "viral_trend": False, # Forced to False to prevent Gemini hallucinations
         
         "supply_disruption": market_data.get("transport_strike", False) or hartal_tomorrow,
         "upcoming_festivals": upcoming_festivals,
